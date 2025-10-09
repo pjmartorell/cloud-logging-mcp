@@ -156,6 +156,7 @@ Parameters: None
 1. **Authentication errors:** Ensure your Google Cloud credentials are properly configured
 2. **Permission errors:** Check that your account has the `logging.logEntries.list` permission
 3. **No results:** Verify your filter syntax and that logs exist for your query
+4. **Deprecation warnings:** You may see warnings about `fromStream` and `fromJSON` methods being deprecated. These are from the Google Cloud SDK's internal authentication library and do not affect functionality. They will be resolved when Google updates their SDKs
 
 ## Development
 

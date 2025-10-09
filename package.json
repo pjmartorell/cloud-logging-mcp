@@ -30,11 +30,14 @@
   "author": "",
   "license": "MIT",
   "dependencies": {
-    "@google-cloud/logging": "^11.2.0",
-    "@google-cloud/resource-manager": "^6.1.0",
+    "@google-cloud/logging": "^11.2.1",
+    "@google-cloud/resource-manager": "^6.2.0",
     "@modelcontextprotocol/sdk": "^1.13.1",
     "neverthrow": "^8.2.0",
     "zod": "^3.25.67"
+  },
+  "overrides": {
+    "google-auth-library": "^10.4.0"
   },
   "devDependencies": {
     "@commitlint/cli": "^19.8.1",
