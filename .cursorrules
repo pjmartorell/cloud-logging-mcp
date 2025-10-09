@@ -86,3 +86,6 @@ best practices for handling large queries.
 - Always consume stderr when spawning processes
 - Skip E2E tests by default (use RUN_E2E=1 to enable)
 
+### Known Issues
+- **Google Auth Library Deprecation Warnings**: The application may display warnings about `fromStream` and `fromJSON` methods being deprecated. These warnings originate from the Google Cloud SDK's internal authentication library (google-auth-library) and do not affect functionality. The project uses the latest versions with npm overrides to ensure consistency, but Google's SDKs internally still use these deprecated methods. These warnings will be resolved when Google updates their client libraries.
+
