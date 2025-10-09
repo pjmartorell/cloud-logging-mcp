@@ -15,9 +15,8 @@
     "noEmit": true,
     "types": ["bun-types", "node"],
     "lib": ["ES2022"],
-    "baseUrl": ".",
     "paths": {
-      "@/*": ["src/*"]
+      "@/*": ["./src/*"]
     }
   },
   "include": ["src/**/*"],

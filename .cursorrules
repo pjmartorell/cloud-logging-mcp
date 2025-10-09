@@ -1,0 +1,88 @@
+# Cursor AI Instructions for cloud-logging-mcp
+
+## Commit Message Format
+
+This project enforces a strict commit message format via commitlint. All commits MUST follow this structure:
+
+```
+<type>: <subject>
+
+<description paragraph>
+
+# Overview
+<What was changed - bullet points preferred>
+
+# Background
+<Why this change was needed - explanation of context and rationale>
+```
+
+### Requirements:
+- **Type**: Must be a conventional commit type (feat, fix, docs, style, refactor, test, chore, etc.)
+- **Subject**: Short, imperative mood description
+- **Description**: One or more paragraphs explaining the change
+- **# Overview section**: REQUIRED - Must include this exact heading
+- **# Background section**: REQUIRED - Must include this exact heading
+- **Co-authored-by**: Required only when CLAUDECODE=1 environment variable is set
+
+### Example:
+```
+feat: add query pagination support
+
+Added pagination capabilities to the queryLogs tool to handle large result sets efficiently.
+
+# Overview
+- Added pageToken parameter to queryLogs tool
+- Implemented pagination logic in domain layer
+- Updated tests to verify pagination behavior
+- Added documentation for pagination usage
+
+# Background
+Users were experiencing timeouts when querying logs with large result sets.
+Pagination allows clients to retrieve results in manageable chunks, improving
+performance and user experience. This aligns with Google Cloud Logging API
+best practices for handling large queries.
+```
+
+### Common Mistakes to Avoid:
+- ❌ Missing "# Overview" section
+- ❌ Missing "# Background" section
+- ❌ Using "## Overview" instead of "# Overview" (must be H1, not H2)
+- ❌ Empty commit body
+- ❌ Not leaving a blank line between subject and description
+
+## Development Guidelines
+
+### Package Manager
+- Project supports both **npm** and **bun**
+- All scripts should work with both package managers
+- Prefer npm in documentation and examples for wider compatibility
+- Use `tsx` for TypeScript execution (not `bun run`)
+- Use `vitest` for testing (not `bun:test`)
+
+### Testing
+- **Unit tests**: Run with `npm test` (E2E tests skipped)
+- **E2E tests**: Run with `npm run test:all` (requires Google Cloud credentials)
+- **Pre-commit hook**: Runs `npm run check` (excludes E2E tests for speed)
+- E2E tests require valid GCP credentials and network access
+
+### Code Quality
+- TypeScript strict mode enabled
+- ESLint with TypeScript, functional, and unicorn plugins
+- Use explicit boolean comparisons (no implicit truthiness)
+- Handle nullish cases explicitly
+- Run `npm run check` before committing
+
+### Architecture
+- Follow clean architecture pattern
+- `/adapter`: External service integrations
+- `/domain`: Core business logic
+- `/port`: Interface definitions and MCP handlers
+- `/util`: Utility functions
+
+### Testing Best Practices
+- Use vitest for all tests
+- Import from 'vitest' not 'bun:test'
+- E2E tests should have proper timeouts (30s+)
+- Always consume stderr when spawning processes
+- Skip E2E tests by default (use RUN_E2E=1 to enable)
+

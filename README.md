@@ -12,7 +12,8 @@ A Model Context Protocol (MCP) server that provides access to Google Cloud Loggi
 
 ### Prerequisites
 
-- [Bun](https://bun.sh/) runtime
+- Node.js (v18+) or [Bun](https://bun.sh/) runtime
+- npm (comes with Node.js) or bun
 - Google Cloud credentials configured
 - Access to Google Cloud Logging API
 
@@ -20,6 +21,8 @@ A Model Context Protocol (MCP) server that provides access to Google Cloud Loggi
 
 1. **Install dependencies:**
    ```bash
+   npm install
+   # or
    bun install
    ```
 
@@ -39,6 +42,8 @@ A Model Context Protocol (MCP) server that provides access to Google Cloud Loggi
 
 4. **Run the server:**
    ```bash
+   npm start
+   # or
    bun run start
    ```
 
@@ -49,6 +54,21 @@ Add the following to your Claude Desktop configuration file:
 **macOS**: `~/Library/Application Support/Claude/claude_desktop_config.json`
 **Windows**: `%APPDATA%\Claude\claude_desktop_config.json`
 
+```json
+{
+  "mcpServers": {
+    "cloud-logging": {
+      "command": "npx",
+      "args": ["tsx", "/path/to/cloud-logging-mcp/src/main.ts"],
+      "env": {
+        "GOOGLE_CLOUD_PROJECT": "your-project-id"
+      }
+    }
+  }
+}
+```
+
+**Note**: If using Bun, use:
 ```json
 {
   "mcpServers": {
@@ -140,18 +160,32 @@ Parameters: None
 ## Development
 
 ```bash
-# Run tests
-bun test
+# Run tests (unit tests only, E2E tests skipped)
+npm test
+
+# Run all tests including E2E (requires Google Cloud credentials)
+npm run test:all
+
+# Run checks (typecheck, lint, test, knip)
+npm run check
+
+# Run all checks including E2E tests
+npm run check:all
 
 # Type checking
-bun run typecheck
+npm run typecheck
 
 # Linting
-bun run lint
+npm run lint
 
 # Format code
-bun run format
+npm run format
+
+# Start dev server with watch mode
+npm run dev
 ```
+
+**Note**: E2E tests (`test:all`, `check:all`) require valid Google Cloud credentials and will attempt to connect to actual Google Cloud services. Unit tests can run without credentials.
 
 ## Architecture
 

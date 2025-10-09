@@ -1,4 +1,4 @@
-import { describe, it, expect } from "bun:test";
+import { describe, it, expect } from "vitest";
 import { validateTimeString, buildTimestampFilter, combineFilters } from "./time-range";
 
 describe("time-range functions", () => {

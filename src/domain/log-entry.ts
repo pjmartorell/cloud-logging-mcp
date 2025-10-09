@@ -12,28 +12,6 @@ type LogSummary = {
   summary: string;
 };
 
-export function summarize(entry: RawLogEntry, summaryFields?: string[]): LogSummary {
-  const summary = extractLogSummaryText(entry, summaryFields);
-
-  return {
-    insertId: entry.insertId,
-    timestamp: entry.timestamp,
-    severity: entry.severity,
-    summary,
-  };
-}
-
-const extractLogSummaryText = (entry: RawLogEntry, summaryFields?: string[]): string => {
-  const useFields = Array.isArray(summaryFields) && summaryFields.length > 0;
-
-  return (useFields && summaryFields !== undefined)
-    ? ((): string => {
-        const summaryFromFields = processSummaryFields(summaryFields, entry);
-        return summaryFromFields === "" ? extractSummaryWithoutFields(entry) : summaryFromFields;
-      })()
-    : extractSummaryWithoutFields(entry);
-};
-
 const serializeValue = (value: unknown): string => {
   if (typeof value === 'string') {
     return value;
@@ -50,19 +28,6 @@ const serializeValue = (value: unknown): string => {
     }
   }
   return String(value);
-};
-
-const processSummaryFields = (fields: string[], entry: RawLogEntry): string => {
-  const parts: string[] = [];
-  
-  for (const field of fields) {
-    const value = viewPath(field, entry);
-    if (value !== null && value !== undefined) {
-      parts.push(`${field}: ${serializeValue(value)}`);
-    }
-  }
-  
-  return parts.length === 0 ? "" : redactSensitiveInfo(parts.join(", "));
 };
 
 const viewPath = (pathStr: string, obj: unknown): unknown => {
@@ -85,6 +50,19 @@ const viewPath = (pathStr: string, obj: unknown): unknown => {
   return result;
 };
 
+const processSummaryFields = (fields: string[], entry: RawLogEntry): string => {
+  const parts: string[] = [];
+  
+  for (const field of fields) {
+    const value = viewPath(field, entry);
+    if (value !== null && value !== undefined) {
+      parts.push(`${field}: ${serializeValue(value)}`);
+    }
+  }
+  
+  return parts.length === 0 ? "" : redactSensitiveInfo(parts.join(", "));
+};
+
 const extractSummaryWithoutFields = (entry: RawLogEntry): string => {
   const rawSummary = 
     getTextPayload(entry) ??
@@ -97,6 +75,28 @@ const extractSummaryWithoutFields = (entry: RawLogEntry): string => {
   
   return truncate(redactSensitiveInfo(rawSummary));
 };
+
+const extractLogSummaryText = (entry: RawLogEntry, summaryFields?: string[]): string => {
+  const useFields = Array.isArray(summaryFields) && summaryFields.length > 0;
+
+  return (useFields && summaryFields !== undefined)
+    ? ((): string => {
+        const summaryFromFields = processSummaryFields(summaryFields, entry);
+        return summaryFromFields === "" ? extractSummaryWithoutFields(entry) : summaryFromFields;
+      })()
+    : extractSummaryWithoutFields(entry);
+};
+
+export function summarize(entry: RawLogEntry, summaryFields?: string[]): LogSummary {
+  const summary = extractLogSummaryText(entry, summaryFields);
+
+  return {
+    insertId: entry.insertId,
+    timestamp: entry.timestamp,
+    severity: entry.severity,
+    summary,
+  };
+}
 
 const findMessage = (obj: unknown): string | undefined => {
   if (typeof obj !== 'object' || obj === null) return undefined;

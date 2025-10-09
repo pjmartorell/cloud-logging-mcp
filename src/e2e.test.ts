@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeAll, afterAll } from "bun:test";
+import { describe, it, expect, beforeAll, afterAll } from "vitest";
 import { spawn, type ChildProcess } from "child_process";
 import { createInterface } from "readline";
 import { z } from "zod";
@@ -63,12 +63,22 @@ describe.skipIf(skipE2E)("MCP Server E2E Tests", () => {
   const responses = new Map<number, MCPResponse>();
 
   beforeAll(async () => {
-    // Start the MCP server
-    serverProcess = spawn("bun", ["run", "src/main.ts"]);
+    // Start the MCP server using tsx for TypeScript execution
+    serverProcess = spawn("npx", ["tsx", "src/main.ts"]);
 
     if (!serverProcess.stdout) {
       throw new Error("Server process stdout is not available");
     }
+
+    if (!serverProcess.stderr) {
+      throw new Error("Server process stderr is not available");
+    }
+    
+    // Consume stderr to prevent process from hanging
+    serverProcess.stderr.on("data", () => {
+      // Log errors for debugging (optional)
+      // Intentionally consuming stderr to prevent process from hanging
+    });
     
     const rl = createInterface({
       input: serverProcess.stdout,
@@ -97,7 +107,7 @@ describe.skipIf(skipE2E)("MCP Server E2E Tests", () => {
     };
 
     // Helper to wait for response
-    waitForResponse = (id: number, timeout = 5000): Promise<MCPResponse> => {
+    waitForResponse = (id: number, timeout = 25000): Promise<MCPResponse> => {
       return new Promise((resolve, reject) => {
         const startTime = Date.now();
         const checkInterval = setInterval(() => {

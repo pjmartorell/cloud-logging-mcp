@@ -1,4 +1,4 @@
-import { describe, expect, it } from "bun:test";
+import { describe, expect, it } from "vitest";
 import type { RawLogEntry } from "./api";
 import { summarize } from "./log-entry";
 import { createLogId } from "./log-id";

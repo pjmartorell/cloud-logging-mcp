@@ -5,17 +5,17 @@
   "main": "src/main.ts",
   "type": "module",
   "scripts": {
-    "start": "bun run src/main.ts",
-    "dev": "bun run --watch src/main.ts",
-    "test": "bun test",
-    "test:e2e": "RUN_E2E=1 bun test src/e2e.test.ts",
-    "test:all": "RUN_E2E=1 bun test",
+    "start": "tsx src/main.ts",
+    "dev": "tsx watch src/main.ts",
+    "test": "vitest run",
+    "test:e2e": "RUN_E2E=1 vitest run src/e2e.test.ts",
+    "test:all": "RUN_E2E=1 vitest run",
     "lint": "eslint src",
     "format": "prettier --write src",
     "typecheck": "tsgo --noEmit",
     "knip": "knip",
-    "check": "concurrently -c auto -g \"bun typecheck\" \"bun lint\" \"bun test\" \"bun knip\"",
-    "check:all": "concurrently -c auto -g \"bun typecheck\" \"bun lint\" \"bun test:all\" \"bun knip\"",
+    "check": "concurrently -c auto -g \"npm run typecheck\" \"npm run lint\" \"npm run test\" \"npm run knip\"",
+    "check:all": "concurrently -c auto -g \"npm run typecheck\" \"npm run lint\" \"npm run test:all\" \"npm run knip\"",
     "build": "bun build src/main.ts --target node --outdir dist",
     "prepare": "husky"
   },
@@ -53,6 +53,8 @@
     "husky": "^9.1.7",
     "knip": "^5.61.2",
     "prettier": "^3.6.1",
-    "typescript": "^5.8.3"
+    "typescript": "^5.8.3",
+    "tsx": "^4.19.2",
+    "vitest": "^2.1.8"
   }
 }
