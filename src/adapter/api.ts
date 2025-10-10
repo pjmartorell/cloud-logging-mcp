@@ -12,6 +12,8 @@ export class GoogleCloudLoggingApiClient implements CloudLoggingApi {
   private projectsClient: ProjectsClient;
   private auth: GoogleAuth;
   private projectId: string;
+  private cachedLoggingClient?: Logging;
+  private tokenExpiryTime?: number;
 
   constructor() {
     // Initialize with explicit configuration to ensure credentials are picked up
@@ -32,11 +34,52 @@ export class GoogleCloudLoggingApiClient implements CloudLoggingApi {
   }
   
   /**
+   * Safely extracts expiry_date from the auth token response
+   * The auth library uses `any` types internally, so we need type-safe extraction
+   */
+  private extractExpiryDate(res: unknown): unknown {
+    if (res === null || res === undefined || typeof res !== 'object') {
+      return undefined;
+    }
+    
+    const resWithData = res;
+    if (!('data' in resWithData)) {
+      return undefined;
+    }
+    
+    const data = resWithData.data;
+    if (data === null || data === undefined || typeof data !== 'object') {
+      return undefined;
+    }
+    
+    if (!('expiry_date' in data)) {
+      return undefined;
+    }
+    
+    return Object.getOwnPropertyDescriptor(data, 'expiry_date')?.value;
+  }
+  
+  /**
    * Initialize the Logging client with manual gRPC credentials.
    * This workaround is needed because google-auth-library v10 has issues
    * with gRPC authentication when using authorized_user credentials.
+   * 
+   * The client and token are cached to reduce authentication overhead.
+   * Tokens are refreshed automatically when they expire (typically after 1 hour).
    */
   private async getLoggingClient(): Promise<Logging> {
+    const now = Date.now();
+    
+    // Return cached client if token hasn't expired yet
+    // Add a 5-minute buffer before expiry to avoid race conditions
+    if (
+      this.cachedLoggingClient !== undefined && 
+      this.tokenExpiryTime !== undefined && 
+      now < (this.tokenExpiryTime - 5 * 60 * 1000)
+    ) {
+      return this.cachedLoggingClient;
+    }
+    
     try {
       // Get auth client and access token
       const authClient = await this.auth.getClient();
@@ -44,6 +87,18 @@ export class GoogleCloudLoggingApiClient implements CloudLoggingApi {
       
       if (tokenResponse.token === null || tokenResponse.token === undefined) {
         throw new Error('Failed to obtain access token');
+      }
+      
+      // Calculate token expiry time
+      // If res.expiry_date is available, use it; otherwise default to 1 hour
+      // The res object is any type from the auth library, so we need to safely extract expiry_date
+      const expiryDate: unknown = this.extractExpiryDate(tokenResponse.res);
+      
+      if (typeof expiryDate === 'number') {
+        this.tokenExpiryTime = expiryDate;
+      } else {
+        // Default to 55 minutes from now (tokens typically last 1 hour)
+        this.tokenExpiryTime = now + (55 * 60 * 1000);
       }
       
       // Create gRPC credentials manually
@@ -57,14 +112,19 @@ export class GoogleCloudLoggingApiClient implements CloudLoggingApi {
         })
       );
       
-      // Create logging client with manual gRPC credentials
-      return new Logging({
+      // Create and cache the logging client
+      this.cachedLoggingClient = new Logging({
         projectId: this.projectId,
         sslCreds,
       });
+      
+      return this.cachedLoggingClient;
     } catch (error) {
       // Fallback to default initialization if manual credentials fail
       // This should rarely happen in production
+      // Clear cache to retry on next attempt
+      this.cachedLoggingClient = undefined;
+      this.tokenExpiryTime = undefined;
       return new Logging({ projectId: this.projectId });
     }
   }
