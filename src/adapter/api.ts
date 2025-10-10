@@ -1,5 +1,8 @@
 import { Logging } from "@google-cloud/logging";
 import { ProjectsClient } from "@google-cloud/resource-manager";
+import { GoogleAuth } from "google-auth-library";
+import { existsSync } from "node:fs";
+import https from "node:https";
 import { ok, err, type Result } from "neverthrow";
 import type { CloudLoggingApi, CloudLoggingQuery, RawLogEntry, LogSeverity } from "../domain/api";
 import type { CloudLoggingError } from "../domain/api";
@@ -9,10 +12,57 @@ import { createLogId } from "../domain/log-id";
 export class GoogleCloudLoggingApiClient implements CloudLoggingApi {
   private logging: Logging;
   private projectsClient: ProjectsClient;
+  private authClient: GoogleAuth | undefined;
 
   constructor() {
-    this.logging = new Logging();
-    this.projectsClient = new ProjectsClient();
+    // Initialize with explicit configuration to ensure credentials are picked up
+    const projectId = process.env.GOOGLE_CLOUD_PROJECT;
+    const home = process.env.HOME;
+    
+    // Try to load the ADC file and create appropriate credentials
+    let authClient: GoogleAuth | undefined;
+    
+    if (home !== undefined) {
+      const adcPath = `${home}/.config/gcloud/application_default_credentials.json`;
+      
+      if (existsSync(adcPath)) {
+        try {
+          // Use GoogleAuth with keyFile option to load ADC
+          // This handles both service account and user credentials
+          authClient = new GoogleAuth({
+            keyFile: adcPath,
+            scopes: [
+              'https://www.googleapis.com/auth/cloud-platform',
+              'https://www.googleapis.com/auth/logging.read',
+            ],
+          });
+        } catch (error) {
+          console.error('Failed to load ADC credentials:', error);
+        }
+      }
+    }
+    
+    // Fallback to GoogleAuth with default credentials if we couldn't load from file
+    if (authClient === undefined) {
+      authClient = new GoogleAuth({
+        scopes: [
+          'https://www.googleapis.com/auth/cloud-platform',
+          'https://www.googleapis.com/auth/logging.read',
+        ],
+      });
+    }
+    
+    // Store the auth client for direct REST API calls
+    this.authClient = authClient;
+    
+    // Pass the auth client to the Logging client
+    this.logging = new Logging({
+      projectId,
+      auth: authClient,
+    });
+    this.projectsClient = new ProjectsClient({
+      auth: authClient,
+    });
   }
 
   async entries(params: CloudLoggingQuery): Promise<
@@ -25,6 +75,12 @@ export class GoogleCloudLoggingApiClient implements CloudLoggingApi {
     >
   > {
     try {
+      // Use direct REST API call instead of SDK to avoid authentication issues
+      if (this.authClient !== undefined) {
+        return await this.entriesDirectAPI(params);
+      }
+      
+      // Fallback to SDK if authClient is not available
       interface GetEntriesRequest {
         projectIds: string[];
         filter: string;
@@ -86,6 +142,132 @@ export class GoogleCloudLoggingApiClient implements CloudLoggingApi {
       };
       return err(cloudError);
     }
+  }
+
+  private async entriesDirectAPI(params: CloudLoggingQuery): Promise<
+    Result<
+      {
+        entries: RawLogEntry[];
+        nextPageToken?: string;
+      },
+      CloudLoggingError
+    >
+  > {
+    try {
+      if (this.authClient === undefined) {
+        throw new Error('Auth client not available');
+      }
+
+      // Get access token from GoogleAuth
+      const client = await this.authClient.getClient();
+      const tokenResponse = await client.getAccessToken();
+      const token = tokenResponse.token;
+      
+      if (token === null || token === undefined) {
+        throw new Error('Failed to obtain access token');
+      }
+
+      // Prepare request body
+      const requestBody: Record<string, unknown> = {
+        projectIds: [params.projectId],
+        filter: params.filter,
+        pageSize: params.pageSize ?? 100,
+        orderBy: params.orderBy !== undefined ? `timestamp ${params.orderBy.timestamp}` : "timestamp desc",
+      };
+
+      if (params.pageToken !== undefined) {
+        requestBody.pageToken = params.pageToken;
+      }
+
+      if (params.resourceNames !== undefined && params.resourceNames.length > 0) {
+        requestBody.resourceNames = params.resourceNames;
+      }
+
+      const postData = JSON.stringify(requestBody);
+
+      // Make HTTPS request
+      const response = await new Promise<{entries?: unknown[]; nextPageToken?: string}>((resolve, reject) => {
+        const options = {
+          hostname: 'logging.googleapis.com',
+          path: '/v2/entries:list',
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+            'Content-Length': Buffer.byteLength(postData),
+            'x-goog-user-project': params.projectId,
+          },
+        };
+
+        const req = https.request(options, (res) => {
+          let data = '';
+          res.on('data', (chunk: Buffer) => { data += chunk.toString(); });
+          res.on('end', () => {
+            if (res.statusCode === 200) {
+              try {
+                const parsed: unknown = JSON.parse(data);
+                resolve(parsed as {entries?: unknown[]; nextPageToken?: string});
+              } catch {
+                reject(new Error('Failed to parse response'));
+              }
+            } else {
+              reject(new Error(`HTTP ${res.statusCode ?? 'error'}: ${data}`));
+            }
+          });
+        });
+
+        req.on('error', reject);
+        req.write(postData);
+        req.end();
+      });
+
+      // Parse entries
+      const rawEntries: RawLogEntry[] = (response.entries ?? []).map((entry: unknown) => {
+        if (typeof entry !== 'object' || entry === null) {
+          return this.createEmptyLogEntry();
+        }
+
+        const e = entry as Record<string, unknown>;
+        const timestamp = this.extractTimestamp(e.timestamp);
+
+        return {
+          insertId: createLogId(typeof e.insertId === 'string' ? e.insertId : ""),
+          timestamp,
+          severity: this.mapSeverity(e.severity),
+          jsonPayload: typeof e.jsonPayload === "object" && e.jsonPayload !== null ? this.cloneObject(e.jsonPayload) : undefined,
+          textPayload: typeof e.textPayload === "string" ? e.textPayload : undefined,
+          protoPayload: this.convertProtoPayload(e.protoPayload),
+          labels: typeof e.labels === 'object' && e.labels !== null ? e.labels as Record<string, string> : undefined,
+          resource: typeof e.resource === 'object' && e.resource !== null ? e.resource as Record<string, unknown> : undefined,
+          httpRequest: typeof e.httpRequest === 'object' && e.httpRequest !== null ? e.httpRequest as Record<string, unknown> : undefined,
+          trace: typeof e.trace === 'string' ? e.trace : undefined,
+          spanId: typeof e.spanId === 'string' ? e.spanId : undefined,
+          traceSampled: typeof e.traceSampled === 'boolean' ? e.traceSampled : undefined,
+          sourceLocation: typeof e.sourceLocation === 'object' && e.sourceLocation !== null ? e.sourceLocation as Record<string, unknown> : undefined,
+          operation: typeof e.operation === 'object' && e.operation !== null ? e.operation as Record<string, unknown> : undefined,
+        };
+      });
+
+      return ok({
+        entries: rawEntries,
+        nextPageToken: response.nextPageToken,
+      });
+    } catch (error) {
+      const errorObj = error instanceof Error ? error : { message: String(error) };
+      const cloudError: CloudLoggingError = {
+        message: errorObj.message ?? "Unknown error occurred",
+        code: "INTERNAL",
+      };
+      return err(cloudError);
+    }
+  }
+
+  private createEmptyLogEntry(): RawLogEntry {
+    return {
+      insertId: createLogId(""),
+      timestamp: new Date().toISOString(),
+      severity: "DEFAULT",
+    };
   }
 
   private extractTimestamp(timestamp: unknown): string {
