@@ -2,6 +2,7 @@ import { z } from "zod";
 import type { CloudLoggingApi } from "../domain/api.js";
 import type { ListProjectsOutput } from "../domain/list-projects.js";
 import type { Tool } from "./types";
+import { createSuccessResponse, createErrorResponse } from "./types";
 
 const ListProjectsInputSchema = z.object({
   filter: z.string().optional().describe("Optional filter to apply to the project list"),
@@ -15,40 +16,41 @@ export const listProjects = (api: CloudLoggingApi): Tool<typeof ListProjectsInpu
     description: "Lists available Google Cloud projects that the authenticated user has access to",
     inputSchema: ListProjectsInputSchema,
     handler: async ({ input }): Promise<{ content: Array<{ type: "text"; text: string }> }> => {
+      const startTime = Date.now();
+      
       try {
         const result: ListProjectsOutput = await api.listProjects(input);
         const { projects, nextPageToken } = result;
 
-        return {
-          content: [
-            {
-              type: "text" as const,
-              text: JSON.stringify(
-                {
-                  projects: projects.map((p) => ({
-                    projectId: p.projectId,
-                    displayName: p.displayName ?? p.name,
-                    state: p.state,
-                  })),
-                  nextPageToken,
-                  totalCount: projects.length,
-                },
-                null,
-                2
-              ),
-            },
-          ],
-        };
+        return createSuccessResponse(
+          {
+            projects: projects.map((p) => ({
+              projectId: p.projectId,
+              displayName: p.displayName ?? p.name,
+              state: p.state,
+              createTime: p.createTime,
+            })),
+          },
+          {
+            executionTimeMs: Date.now() - startTime,
+            totalCount: projects.length,
+            nextPageToken,
+          }
+        );
       } catch (error) {
         const errorMessage = error instanceof Error ? error.message : String(error);
-        return {
-          content: [
-            {
-              type: "text" as const,
-              text: `Error listing projects: ${errorMessage}`,
-            },
-          ],
-        };
+        const isAuthError = errorMessage.includes("authentication") || errorMessage.includes("permission");
+        
+        return createErrorResponse(
+          isAuthError ? "AUTHENTICATION_ERROR" : "INTERNAL_ERROR",
+          `Error listing projects: ${errorMessage}`,
+          {
+            suggestion: isAuthError
+              ? "Check authentication: run 'gcloud auth application-default login'"
+              : "Verify your Google Cloud credentials are properly configured",
+            retryable: !isAuthError,
+          }
+        );
       }
     },
   };

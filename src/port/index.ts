@@ -18,3 +18,7 @@ export const createTools = (dependencies: {
     listProjects: listProjects(dependencies.api),
   };
 };
+
+// Export types for external use
+export type { ToolError, ToolSuccess, ToolResponse } from "./types";
+export { createSuccessResponse, createErrorResponse } from "./types";

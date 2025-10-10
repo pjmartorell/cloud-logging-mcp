@@ -4,6 +4,7 @@ import type { LogCache } from "../domain/cache";
 import { createQueryLogsOutput } from "../domain/query-logs";
 import { buildQueryLogsFilter } from "../domain/query-logs-filter";
 import type { Tool } from "./types";
+import { createSuccessResponse, createErrorResponse } from "./types";
 
 export const queryLogsInputSchema = z.object({
   projectId: z.string().describe("Google Cloud project ID"),
@@ -67,19 +68,21 @@ Time range is REQUIRED. Use ISO 8601 format for startTime/endTime.`,
       input: QueryLogsInput;
     }): Promise<{ content: Array<{ type: "text"; text: string }> }> => {
       const projectId = input.projectId;
+      const startTime = Date.now();
 
       try {
         const filterResult = buildQueryLogsFilter(input);
         if (filterResult.isErr()) {
-          return {
-            content: [
-              {
-                type: "text" as const,
-                text: `Error: ${filterResult.error.message}`,
-              },
-            ],
-          };
+          return createErrorResponse(
+            "INVALID_FILTER",
+            filterResult.error.message,
+            {
+              suggestion: "Check the filter syntax. Use SEARCH() for full-text search, or field comparisons like severity>=ERROR",
+              retryable: false,
+            }
+          );
         }
+        
         // Call the Cloud Logging API to get entries
         const result = await dependencies.api.entries({
           projectId,
@@ -91,17 +94,22 @@ Time range is REQUIRED. Use ISO 8601 format for startTime/endTime.`,
         });
 
         if (result.isErr()) {
-          return {
-            content: [
-              {
-                type: "text" as const,
-                text: `Error querying logs: ${result.error.message}`,
-              },
-            ],
-          };
+          const errorCode = result.error.code ?? "UNKNOWN_ERROR";
+          const isAuthError = errorCode === "UNAUTHENTICATED" || errorCode === "PERMISSION_DENIED";
+          return createErrorResponse(
+            errorCode,
+            result.error.message,
+            {
+              suggestion: isAuthError 
+                ? "Check authentication: run 'gcloud auth application-default login' or verify GOOGLE_CLOUD_PROJECT is set"
+                : "Verify the project ID and filter syntax are correct",
+              retryable: errorCode === "UNAVAILABLE" || errorCode === "INTERNAL",
+            }
+          );
         }
 
         const { entries, nextPageToken } = result.value;
+        const executionTimeMs = Date.now() - startTime;
 
         // Cache each log entry
         for (const entry of entries) {
@@ -111,23 +119,21 @@ Time range is REQUIRED. Use ISO 8601 format for startTime/endTime.`,
         // Transform entries to the expected output format
         const output = createQueryLogsOutput(entries, nextPageToken, input.summaryFields);
 
-        return {
-          content: [
-            {
-              type: "text" as const,
-              text: JSON.stringify(output, null, 2),
-            },
-          ],
-        };
+        return createSuccessResponse(output, {
+          executionTimeMs,
+          totalCount: entries.length,
+          nextPageToken,
+          cached: false,
+        });
       } catch (error) {
-        return {
-          content: [
-            {
-              type: "text" as const,
-              text: `Error: ${error instanceof Error ? error.message : String(error)}`,
-            },
-          ],
-        };
+        return createErrorResponse(
+          "INTERNAL_ERROR",
+          error instanceof Error ? error.message : String(error),
+          {
+            suggestion: "This is an unexpected error. Please check the server logs for more details.",
+            retryable: true,
+          }
+        );
       }
     },
   };

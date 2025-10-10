@@ -9,6 +9,7 @@ import {
   formatNotFoundError,
 } from "../domain/get-log-detail";
 import type { Tool } from "./types";
+import { createSuccessResponse, createErrorResponse } from "./types";
 
 const inputSchema = z.object({
   projectId: z.string().describe("Google Cloud project ID"),
@@ -27,19 +28,19 @@ export const getLogDetailTool = (dependencies: {
     inputSchema: inputSchema,
     handler: async ({ input }: { input: GetLogDetailInput }): Promise<{ content: Array<{ type: "text"; text: string }> }> => {
       const projectId = input.projectId;
+      const startTime = Date.now();
 
       // First check cache
       const logIdTyped = createLogId(input.logId);
       const cachedEntry = dependencies.cache.get(logIdTyped);
       if (cachedEntry) {
-        return {
-          content: [
-            {
-              type: "text" as const,
-              text: formatLogEntry(cachedEntry),
-            },
-          ],
-        };
+        return createSuccessResponse(
+          JSON.parse(formatLogEntry(cachedEntry)),
+          {
+            cached: true,
+            executionTimeMs: Date.now() - startTime,
+          }
+        );
       }
 
       // If not in cache, query from API
@@ -51,52 +52,55 @@ export const getLogDetailTool = (dependencies: {
       });
 
       if (result.isErr()) {
-        return {
-          content: [
-            {
-              type: "text" as const,
-              text: formatError(result.error),
-            },
-          ],
-        };
+        const errorCode = result.error.code ?? "UNKNOWN_ERROR";
+        const isAuthError = errorCode === "UNAUTHENTICATED" || errorCode === "PERMISSION_DENIED";
+        return createErrorResponse(
+          errorCode,
+          formatError(result.error),
+          {
+            suggestion: isAuthError
+              ? "Check authentication: run 'gcloud auth application-default login' or verify GOOGLE_CLOUD_PROJECT is set"
+              : "Verify the project ID and log ID are correct",
+            retryable: errorCode === "UNAVAILABLE" || errorCode === "INTERNAL",
+          }
+        );
       }
 
       const entries = result.value.entries;
       if (entries.length === 0) {
-        return {
-          content: [
-            {
-              type: "text" as const,
-              text: formatNotFoundError(input.logId),
-            },
-          ],
-        };
+        return createErrorResponse(
+          "LOG_NOT_FOUND",
+          formatNotFoundError(input.logId),
+          {
+            suggestion: "The log ID may be incorrect or the log may have been deleted. Check the ID from queryLogs results.",
+            retryable: false,
+          }
+        );
       }
 
       const entry = entries[0];
       
       if (entry === undefined) {
-        return {
-          content: [
-            {
-              type: "text" as const,
-              text: formatNotFoundError(input.logId),
-            },
-          ],
-        };
+        return createErrorResponse(
+          "LOG_NOT_FOUND",
+          formatNotFoundError(input.logId),
+          {
+            suggestion: "The log ID may be incorrect or the log may have been deleted. Check the ID from queryLogs results.",
+            retryable: false,
+          }
+        );
       }
       
       // Add to cache for future requests
       dependencies.cache.add(logIdTyped, entry);
 
-      return {
-        content: [
-          {
-            type: "text" as const,
-            text: formatLogEntry(entry),
-          },
-        ],
-      };
+      return createSuccessResponse(
+        JSON.parse(formatLogEntry(entry)),
+        {
+          cached: false,
+          executionTimeMs: Date.now() - startTime,
+        }
+      );
     },
   };
 };

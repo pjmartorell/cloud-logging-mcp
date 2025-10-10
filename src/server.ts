@@ -19,7 +19,7 @@ export const createServer = (): McpServer => {
     tools.queryLogs.name,
     tools.queryLogs.description,
     tools.queryLogs.inputSchema.shape,
-    async (args) => {
+    async (args, _extra) => {
       const result = await tools.queryLogs.handler({ input: args });
       return result;
     }
@@ -30,7 +30,7 @@ export const createServer = (): McpServer => {
     tools.getLogDetail.name,
     tools.getLogDetail.description,
     tools.getLogDetail.inputSchema.shape,
-    async (args) => {
+    async (args, _extra) => {
       const result = await tools.getLogDetail.handler({ input: args });
       return result;
     }
@@ -41,7 +41,7 @@ export const createServer = (): McpServer => {
     tools.listProjects.name,
     tools.listProjects.description,
     tools.listProjects.inputSchema.shape,
-    async (args) => {
+    async (args, _extra) => {
       const result = await tools.listProjects.handler({ input: args });
       return result;
     }
