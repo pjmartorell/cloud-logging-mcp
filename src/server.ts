@@ -1,7 +1,8 @@
-import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
+import { McpServer, type ReadResourceCallback } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { GoogleCloudLoggingApiClient } from "./adapter/api";
 import { LogCacheImpl } from "./adapter/cache";
 import { createTools } from "./port";
+import { performHealthCheck } from "./util/health-check";
 
 export const createServer = (): McpServer => {
   const server = new McpServer({
@@ -44,6 +45,26 @@ export const createServer = (): McpServer => {
       const result = await tools.listProjects.handler({ input: args });
       return result;
     }
+  );
+
+  // Register health check resource
+  const healthCheckCallback: ReadResourceCallback = async (uri, _extra) => {
+    const healthStatus = await performHealthCheck(api);
+    return {
+      contents: [
+        {
+          uri: uri.toString(),
+          mimeType: "application/json",
+          text: JSON.stringify(healthStatus, null, 2),
+        },
+      ],
+    };
+  };
+  
+  server.resource(
+    "Health Status",
+    "health://status",
+    healthCheckCallback
   );
 
   return server;
