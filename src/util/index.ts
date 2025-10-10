@@ -1,4 +1,16 @@
 export { redactSensitiveInfo } from "./redact";
+export { 
+  validateEnvironment, 
+  validateEnvironmentOrThrow,
+  type EnvironmentValidationError,
+  type EnvironmentValidationResult,
+  type FileSystemChecker
+} from "./env-validation";
+export {
+  performHealthCheck,
+  type HealthCheckResult,
+  type HealthCheckStatus
+} from "./health-check";
 
 /**
  * Extracts a value from an object using a dot-notation path
