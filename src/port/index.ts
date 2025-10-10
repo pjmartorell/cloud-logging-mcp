@@ -3,6 +3,8 @@ import type { LogCache } from "../domain/cache";
 import { getLogDetailTool } from "./getLogDetail";
 import { queryLogsTool } from "./queryLogs";
 import { listProjects } from "./listProjects";
+import { createAggregateLogsTool } from "./aggregate-logs";
+import { createLogMetricsTool } from "./log-metrics";
 
 export const createTools = (dependencies: {
   api: CloudLoggingApi;
@@ -11,11 +13,15 @@ export const createTools = (dependencies: {
   queryLogs: ReturnType<typeof queryLogsTool>;
   getLogDetail: ReturnType<typeof getLogDetailTool>;
   listProjects: ReturnType<typeof listProjects>;
+  aggregateLogs: ReturnType<typeof createAggregateLogsTool>;
+  queryLogMetrics: ReturnType<typeof createLogMetricsTool>;
 } => {
   return {
     queryLogs: queryLogsTool(dependencies),
     getLogDetail: getLogDetailTool(dependencies),
     listProjects: listProjects(dependencies.api),
+    aggregateLogs: createAggregateLogsTool(dependencies.api),
+    queryLogMetrics: createLogMetricsTool(dependencies.api),
   };
 };
 

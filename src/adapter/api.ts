@@ -1,15 +1,32 @@
 import { Logging } from "@google-cloud/logging";
 import { ProjectsClient } from "@google-cloud/resource-manager";
+import { MetricServiceClient } from "@google-cloud/monitoring";
 import { GoogleAuth } from "google-auth-library";
 import grpc from "@grpc/grpc-js";
 import { ok, err, type Result } from "neverthrow";
 import type { CloudLoggingApi, CloudLoggingQuery, RawLogEntry, LogSeverity } from "../domain/api";
 import type { CloudLoggingError } from "../domain/api";
 import type { ListProjectsInput, ListProjectsOutput, Project } from "../domain/list-projects";
+import type { AggregationInput, AggregationOutput } from "../domain/aggregate-logs";
+import type { LogMetricsInput, LogMetricsOutput, LogMetricsError } from "../domain/log-metrics";
+import {
+  buildAggregationFilter,
+  groupLogEntries,
+  formatGroupedResults,
+  groupLogEntriesByTime,
+  formatTimeSeriesResults,
+  timeIntervalToSeconds,
+} from "../domain/aggregate-logs";
+import {
+  validateMetricName,
+  validateAlignmentPeriod,
+  validateTimeRange,
+} from "../domain/log-metrics";
 import { createLogId } from "../domain/log-id";
 
 export class GoogleCloudLoggingApiClient implements CloudLoggingApi {
   private projectsClient: ProjectsClient;
+  private metricsClient: MetricServiceClient;
   private auth: GoogleAuth;
   private projectId: string;
   private cachedLoggingClient?: Logging;
@@ -25,10 +42,15 @@ export class GoogleCloudLoggingApiClient implements CloudLoggingApi {
       scopes: [
         'https://www.googleapis.com/auth/cloud-platform',
         'https://www.googleapis.com/auth/logging.read',
+        'https://www.googleapis.com/auth/monitoring.read',
       ],
     });
     
     this.projectsClient = new ProjectsClient({
+      projectId: this.projectId,
+    });
+
+    this.metricsClient = new MetricServiceClient({
       projectId: this.projectId,
     });
   }
@@ -340,6 +362,238 @@ export class GoogleCloudLoggingApiClient implements CloudLoggingApi {
     } catch (error) {
       const errorObj = error instanceof Error ? error : { message: String(error) };
       throw new Error(`Failed to list projects: ${errorObj.message ?? 'Unknown error'}`);
+    }
+  }
+
+  async queryLogMetrics(params: LogMetricsInput): Promise<Result<LogMetricsOutput, LogMetricsError>> {
+    const startTime = Date.now();
+
+    try {
+      // Validate inputs
+      const metricNameResult = validateMetricName(params.metricName);
+      if (metricNameResult.isErr()) {
+        return err({
+          message: metricNameResult.error.message,
+          code: "INVALID_ARGUMENT",
+        });
+      }
+
+      const alignmentPeriodResult = validateAlignmentPeriod(params.alignmentPeriod);
+      if (alignmentPeriodResult.isErr()) {
+        return err({
+          message: alignmentPeriodResult.error.message,
+          code: "INVALID_ARGUMENT",
+        });
+      }
+
+      const timeRangeResult = validateTimeRange(params.startTime, params.endTime);
+      if (timeRangeResult.isErr()) {
+        return err({
+          message: timeRangeResult.error.message,
+          code: "INVALID_ARGUMENT",
+        });
+      }
+
+      const fullMetricName = metricNameResult.value;
+      const projectName = `projects/${params.projectId}`;
+
+      // Build the time series request
+      const request = {
+        name: projectName,
+        filter: `metric.type="${fullMetricName}"`,
+        interval: {
+          startTime: {
+            seconds: Math.floor(new Date(params.startTime).getTime() / 1000),
+          },
+          endTime: {
+            seconds: Math.floor(new Date(params.endTime).getTime() / 1000),
+          },
+        },
+        aggregation: alignmentPeriodResult.value !== undefined ? {
+          alignmentPeriod: {
+            seconds: Number.parseInt(alignmentPeriodResult.value.replace('s', ''), 10),
+          },
+          perSeriesAligner: this.mapAggregationType(params.aggregation),
+        } : undefined,
+      };
+
+      // Query the metrics
+      const [timeSeries] = await this.metricsClient.listTimeSeries(request);
+
+      // Extract and format data points
+      const points = timeSeries.flatMap(series => {
+        const seriesPoints = series.points ?? [];
+        return seriesPoints.map(point => {
+          const timestamp = point.interval?.endTime?.seconds !== undefined
+            ? new Date(Number(point.interval.endTime.seconds) * 1000).toISOString()
+            : new Date().toISOString();
+
+          const value = ((): number => {
+            if (point.value?.doubleValue !== undefined && point.value.doubleValue !== null) {
+              return point.value.doubleValue;
+            }
+            if (point.value?.int64Value !== undefined && point.value.int64Value !== null) {
+              return typeof point.value.int64Value === 'string' 
+                ? Number.parseInt(point.value.int64Value, 10)
+                : Number(point.value.int64Value);
+            }
+            return 0;
+          })();
+
+          return { timestamp, value };
+        });
+      });
+
+      // Sort by timestamp
+      points.sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
+
+      const output: LogMetricsOutput = {
+        metric: {
+          name: params.metricName,
+          type: fullMetricName,
+          points,
+        },
+        metadata: {
+          executionTimeMs: Date.now() - startTime,
+          pointCount: points.length,
+        },
+      };
+
+      return ok(output);
+    } catch (error) {
+      const errorObj = error instanceof Error ? error : { message: String(error) };
+      const errorMessage = errorObj.message ?? "Unknown error occurred";
+
+      // Map error codes
+      const code: LogMetricsError["code"] = ((): LogMetricsError["code"] => {
+        if (errorMessage.includes("NOT_FOUND") || errorMessage.includes("not found")) {
+          return "NOT_FOUND";
+        }
+        if (errorMessage.includes("PERMISSION_DENIED") || errorMessage.includes("permission")) {
+          return "PERMISSION_DENIED";
+        }
+        if (errorMessage.includes("INVALID_ARGUMENT") || errorMessage.includes("invalid")) {
+          return "INVALID_ARGUMENT";
+        }
+        return "INTERNAL";
+      })();
+
+      return err({
+        message: errorMessage,
+        code,
+      });
+    }
+  }
+
+  private mapAggregationType(aggregation: string | undefined): number {
+    // Map to Cloud Monitoring Aligner enum
+    // ALIGN_NONE = 0, ALIGN_DELTA = 1, ALIGN_RATE = 2, ALIGN_SUM = 10, etc.
+    switch (aggregation) {
+      case "sum":
+        return 10; // ALIGN_SUM
+      case "count":
+        return 11; // ALIGN_COUNT
+      case "rate":
+        return 2; // ALIGN_RATE
+      case "distribution":
+        return 0; // ALIGN_NONE (for distributions)
+      case undefined:
+        return 1; // ALIGN_DELTA (default for undefined)
+      default:
+        return 1; // ALIGN_DELTA (default for any other value)
+    }
+  }
+
+  async aggregate(params: AggregationInput): Promise<Result<AggregationOutput, CloudLoggingError>> {
+    try {
+      // Build the complete filter
+      const filterResult = buildAggregationFilter(params);
+      if (filterResult.isErr()) {
+        return err({
+          message: `Invalid aggregation filter: ${filterResult.error.message}`,
+          code: "INVALID_ARGUMENT",
+        });
+      }
+
+      // Fetch all logs within the time range
+      // Note: For large datasets, this could be optimized with pagination
+      const entriesResult = await this.entries({
+        projectId: params.projectId,
+        filter: filterResult.value,
+        pageSize: params.pageSize ?? 1000, // Default to larger page size for aggregation
+        pageToken: params.pageToken,
+        orderBy: { timestamp: "asc" },
+      });
+
+      if (entriesResult.isErr()) {
+        return err(entriesResult.error);
+      }
+
+      const { entries, nextPageToken } = entriesResult.value;
+
+      // Perform aggregation based on type
+      const output: AggregationOutput = ((): AggregationOutput => {
+        switch (params.aggregation.type) {
+          case "count": {
+            // Simple count of all entries
+            return {
+              aggregation: {
+                type: "count",
+                results: [{ count: entries.length }],
+              },
+              nextPageToken,
+            };
+          }
+
+          case "group_by": {
+            if (params.aggregation.groupBy === undefined || params.aggregation.groupBy.length === 0) {
+              throw new Error("groupBy fields are required for group_by aggregation");
+            }
+
+            const groups = groupLogEntries(entries, params.aggregation.groupBy);
+            const results = formatGroupedResults(groups);
+
+            return {
+              aggregation: {
+                type: "group_by",
+                results,
+              },
+              nextPageToken,
+            };
+          }
+
+          case "time_series": {
+            if (params.aggregation.timeInterval === undefined) {
+              throw new Error("timeInterval is required for time_series aggregation");
+            }
+
+            const intervalSeconds = timeIntervalToSeconds(params.aggregation.timeInterval);
+            const buckets = groupLogEntriesByTime(
+              entries,
+              intervalSeconds,
+              params.startTime,
+              params.endTime
+            );
+            const results = formatTimeSeriesResults(buckets);
+
+            return {
+              aggregation: {
+                type: "time_series",
+                results,
+              },
+              nextPageToken,
+            };
+          }
+        }
+      })();
+
+      return ok(output);
+    } catch (error) {
+      const errorObj = error instanceof Error ? error : { message: String(error) };
+      return err({
+        message: errorObj.message ?? "Unknown error occurred",
+        code: "INTERNAL",
+      });
     }
   }
 }

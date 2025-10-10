@@ -1,6 +1,8 @@
 import type { Result } from "neverthrow";
 import type { LogId } from "./log-id";
 import type { ListProjectsInput, ListProjectsOutput } from "./list-projects";
+import type { AggregationInput, AggregationOutput } from "./aggregate-logs";
+import type { LogMetricsInput, LogMetricsOutput, LogMetricsError } from "./log-metrics";
 
 /**
  * Interface for Cloud Logging adapter
@@ -27,6 +29,20 @@ export interface CloudLoggingApi {
    * @returns Promise with list of projects or error
    */
   listProjects(params: ListProjectsInput): Promise<ListProjectsOutput>;
+
+  /**
+   * Aggregates logs from Cloud Logging
+   * @param params Aggregation parameters
+   * @returns Result with aggregation results or error
+   */
+  aggregate(params: AggregationInput): Promise<Result<AggregationOutput, CloudLoggingError>>;
+
+  /**
+   * Queries log-based metrics from Cloud Monitoring
+   * @param params Metrics query parameters
+   * @returns Result with metric time series data or error
+   */
+  queryLogMetrics(params: LogMetricsInput): Promise<Result<LogMetricsOutput, LogMetricsError>>;
 }
 
 export interface CloudLoggingQuery {
