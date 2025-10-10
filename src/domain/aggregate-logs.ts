@@ -2,11 +2,6 @@ import { ok, err, type Result } from "neverthrow";
 import type { RawLogEntry } from "./api";
 
 /**
- * Aggregation types supported
- */
-type AggregationType = "count" | "group_by" | "time_series";
-
-/**
  * Time intervals for time series aggregation
  */
 type TimeInterval = "1m" | "5m" | "15m" | "30m" | "1h" | "6h" | "12h" | "24h";
