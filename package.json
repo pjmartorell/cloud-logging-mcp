@@ -2,8 +2,14 @@
   "name": "cloud-logging-mcp",
   "version": "1.0.0",
   "description": "Google Cloud Logging MCP Server - A Model Context Protocol server for accessing Google Cloud logs",
-  "main": "src/main.ts",
+  "main": "dist/main.js",
+  "types": "dist/main.d.ts",
   "type": "module",
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
   "scripts": {
     "start": "tsx src/main.ts",
     "dev": "tsx watch src/main.ts",
@@ -16,7 +22,9 @@
     "knip": "knip",
     "check": "concurrently -c auto -g \"npm run typecheck\" \"npm run lint\" \"npm run test\" \"npm run knip\"",
     "check:all": "concurrently -c auto -g \"npm run typecheck\" \"npm run lint\" \"npm run test:all\" \"npm run knip\"",
-    "build": "bun build src/main.ts --target node --outdir dist",
+    "build": "tsc --project tsconfig.build.json",
+    "build:watch": "tsc --project tsconfig.build.json --watch",
+    "clean": "rm -rf dist",
     "prepare": "husky"
   },
   "keywords": [
