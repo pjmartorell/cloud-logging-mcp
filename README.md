@@ -151,12 +151,49 @@ Parameters: None
 - **By text search:** `textPayload:"connection timeout"`
 - **Combined:** `resource.type="k8s_container" AND severity=ERROR AND timestamp>="2024-01-01T00:00:00Z"`
 
+## Debugging
+
+Enable detailed authentication and API call logs by setting the `NODE_DEBUG` environment variable:
+
+```bash
+# Enable debug logging for google-auth-library
+NODE_DEBUG=google-auth npm start
+
+# Enable debug logging for all Google libraries
+NODE_DEBUG=google-* npm start
+
+# In Claude Desktop config
+{
+  "mcpServers": {
+    "cloud-logging": {
+      "command": "npx",
+      "args": ["tsx", "/path/to/cloud-logging-mcp/src/main.ts"],
+      "env": {
+        "GOOGLE_CLOUD_PROJECT": "your-project-id",
+        "NODE_DEBUG": "google-auth"
+      }
+    }
+  }
+}
+```
+
+You can also use the health check resource to verify system status:
+- The server exposes a `health://status` resource that checks environment configuration, authentication, and API connectivity
+
 ## Troubleshooting
 
 1. **Authentication errors:** Ensure your Google Cloud credentials are properly configured
+   - Run `gcloud auth application-default login` to set up credentials
+   - Verify credentials exist at `~/.config/gcloud/application_default_credentials.json`
+   - Check the health status resource for detailed diagnostics
 2. **Permission errors:** Check that your account has the `logging.logEntries.list` permission
+   - Required IAM role: `roles/logging.viewer` or equivalent
+   - Verify with: `gcloud projects get-iam-policy YOUR_PROJECT --flatten="bindings[].members" --filter="bindings.members:user:YOUR_EMAIL"`
 3. **No results:** Verify your filter syntax and that logs exist for your query
+   - Test your filter with `gcloud logging read` first
+   - Check the time range in your query
 4. **Deprecation warnings:** You may see warnings about `fromStream` and `fromJSON` methods being deprecated. These are from the Google Cloud SDK's internal authentication library and do not affect functionality. They will be resolved when Google updates their SDKs
+5. **Performance:** The server implements token caching and connection pooling to optimize performance. Tokens are cached for ~55 minutes and automatically refreshed when needed
 
 ## Development
 
@@ -184,9 +221,34 @@ npm run format
 
 # Start dev server with watch mode
 npm run dev
+
+# Build for production
+npm run build
+
+# Clean build artifacts
+npm run clean
 ```
 
 **Note**: E2E tests (`test:all`, `check:all`) require valid Google Cloud credentials and will attempt to connect to actual Google Cloud services. Unit tests can run without credentials.
+
+### Production Build
+
+To build the project for production:
+
+```bash
+npm run build
+```
+
+This will compile TypeScript to JavaScript and output to the `dist/` directory with:
+- Compiled JavaScript files
+- TypeScript declaration files (`.d.ts`)
+- Source maps for debugging
+
+The built files can be run directly with Node.js:
+
+```bash
+node dist/main.js
+```
 
 ## Architecture
 

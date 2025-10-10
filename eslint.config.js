@@ -94,6 +94,13 @@ export default [
     },
   },
   {
+    files: ['**/*.test.ts'],
+    rules: {
+      // Allow type assertions in test files for mocking
+      '@typescript-eslint/consistent-type-assertions': 'off',
+    },
+  },
+  {
     ignores: ['node_modules/', 'dist/', 'build/', '*.js', '!eslint.config.js', 'vite.config.ts'],
   },
 ];
