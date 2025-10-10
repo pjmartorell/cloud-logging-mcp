@@ -23,7 +23,11 @@ export const configSchema = z.object({
 
 export type Config = z.infer<typeof configSchema>;
 
-export const createServer = (config?: Config): McpServer => {
+/**
+ * Creates and configures the MCP server
+ * This function is used by both HTTP (Smithery CLI) and STDIO transports
+ */
+export function createServer(config?: Config): McpServer {
   // Apply configuration from Smithery if provided
   if (config?.projectId !== undefined) {
     process.env.GOOGLE_CLOUD_PROJECT = config.projectId;

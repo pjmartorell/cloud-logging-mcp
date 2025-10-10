@@ -101,6 +101,14 @@ export default [
     },
   },
   {
+    files: ['src/main.ts'],
+    rules: {
+      // Allow console in main.ts for STDIO transport
+      'no-console': 'off',
+      'eslint-comments/no-use': 'off',
+    },
+  },
+  {
     ignores: ['node_modules/', 'dist/', 'build/', '*.js', '!eslint.config.js', 'vite.config.ts'],
   },
 ];

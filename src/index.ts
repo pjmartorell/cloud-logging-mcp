@@ -1,11 +1,13 @@
-import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { createServer, configSchema, type Config } from "./server.js";
 
-// Export config schema for Smithery
+// Export config schema for Smithery CLI
 export { configSchema };
 
-// Default export function for Smithery compatibility
-export default function createMcpServer({ config }: { config?: Config }): McpServer {
+/**
+ * Default export for Smithery CLI
+ * This function is automatically called by Smithery CLI with HTTP transport
+ */
+export default function createMcpServer({ config }: { config: Config }): ReturnType<typeof createServer> {
   return createServer(config);
 }
 

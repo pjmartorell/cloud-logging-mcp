@@ -13,9 +13,15 @@
     "LICENSE"
   ],
   "scripts": {
-    "start": "tsx src/main.ts",
     "dev": "smithery dev",
-    "dev:local": "tsx watch src/main.ts",
+    "dev:stdio": "tsx watch src/main.ts",
+    "build": "npm run build:http",
+    "build:stdio": "tsc --project tsconfig.build.json",
+    "build:http": "smithery build",
+    "build:watch": "tsc --project tsconfig.build.json --watch",
+    "start": "npm run start:http",
+    "start:http": "node .smithery/index.cjs",
+    "start:stdio": "node dist/index.js",
     "test": "vitest run",
     "test:e2e": "RUN_E2E=1 vitest run src/e2e.test.ts",
     "test:all": "RUN_E2E=1 vitest run",
@@ -25,9 +31,8 @@
     "knip": "knip",
     "check": "concurrently -c auto -g \"npm run typecheck\" \"npm run lint\" \"npm run test\" \"npm run knip\"",
     "check:all": "concurrently -c auto -g \"npm run typecheck\" \"npm run lint\" \"npm run test:all\" \"npm run knip\"",
-    "build": "tsc --project tsconfig.build.json",
-    "build:watch": "tsc --project tsconfig.build.json --watch",
     "clean": "rm -rf dist",
+    "prepublishOnly": "npm run build:stdio",
     "prepare": "husky"
   },
   "keywords": [
