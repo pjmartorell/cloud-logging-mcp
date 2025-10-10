@@ -90,6 +90,33 @@ export const createServer = (config?: Config): McpServer => {
     }
   );
 
+  // Register aggregateLogs tool
+  server.tool(
+    tools.aggregateLogs.name,
+    tools.aggregateLogs.description,
+    tools.aggregateLogs.inputSchema.shape,
+    async (args: unknown, _extra: unknown) => {
+      // MCP SDK validates args against the schema before this handler is called
+      const result = await tools.aggregateLogs.handler({ 
+        input: args as z.infer<typeof tools.aggregateLogs.inputSchema> 
+      });
+      return result;
+    }
+  );
+
+  // Register queryLogMetrics tool
+  server.tool(
+    tools.queryLogMetrics.name,
+    tools.queryLogMetrics.description,
+    tools.queryLogMetrics.inputSchema.shape,
+    async (args: unknown, _extra: unknown) => {
+      const result = await tools.queryLogMetrics.handler({ 
+        input: args as z.infer<typeof tools.queryLogMetrics.inputSchema> 
+      });
+      return result;
+    }
+  );
+
   // Register health check resource
   const healthCheckCallback: ReadResourceCallback = async (uri, _extra) => {
     const healthStatus = await performHealthCheck(api);

@@ -25,10 +25,20 @@ describe('Health Check', () => {
       }] 
     });
     const mockEntries = vi.fn().mockResolvedValue(ok({ entries: [], nextPageToken: undefined }));
+    const mockAggregate = vi.fn().mockResolvedValue(ok({
+      aggregation: { type: 'count' as const, results: [{ count: 0 }] },
+      nextPageToken: undefined,
+    }));
+    const mockQueryLogMetrics = vi.fn().mockResolvedValue(ok({
+      metric: { name: 'test-metric', type: 'logging.googleapis.com/user/test-metric', points: [] },
+      metadata: { executionTimeMs: 100, pointCount: 0 },
+    }));
     
     mockApi = {
       listProjects: mockListProjects,
       entries: mockEntries,
+      aggregate: mockAggregate,
+      queryLogMetrics: mockQueryLogMetrics,
     };
   });
 

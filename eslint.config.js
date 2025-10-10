@@ -94,9 +94,9 @@ export default [
     },
   },
   {
-    files: ['**/*.test.ts'],
+    files: ['**/*.test.ts', 'src/server.ts'],
     rules: {
-      // Allow type assertions in test files for mocking
+      // Allow type assertions in test files for mocking and in server.ts for MCP SDK validated inputs
       '@typescript-eslint/consistent-type-assertions': 'off',
     },
   },
