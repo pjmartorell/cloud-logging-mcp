@@ -58,12 +58,10 @@ export class GoogleCloudLoggingApiClient implements CloudLoggingApi {
       );
       
       // Create logging client with manual gRPC credentials
-      // Note: sslCreds is not in the TypeScript types but is supported by the SDK runtime
-      const options: Record<string, unknown> = {
+      return new Logging({
         projectId: this.projectId,
         sslCreds,
-      };
-      return new Logging(options);
+      });
     } catch (error) {
       // Fallback to default initialization if manual credentials fail
       // This should rarely happen in production
