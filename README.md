@@ -12,8 +12,8 @@ A Model Context Protocol (MCP) server that provides access to Google Cloud Loggi
 
 ### Prerequisites
 
-- Node.js (v18+) or [Bun](https://bun.sh/) runtime
-- npm (comes with Node.js) or bun
+- Node.js (v18+)
+- npm (comes with Node.js)
 - Google Cloud credentials configured
 - Access to Google Cloud Logging API
 
@@ -22,8 +22,6 @@ A Model Context Protocol (MCP) server that provides access to Google Cloud Loggi
 1. **Install dependencies:**
    ```bash
    npm install
-   # or
-   bun install
    ```
 
 2. **Set up Google Cloud credentials:**
@@ -43,8 +41,6 @@ A Model Context Protocol (MCP) server that provides access to Google Cloud Loggi
 4. **Run the server:**
    ```bash
    npm start
-   # or
-   bun run start
    ```
 
 ### Using with Claude Desktop
@@ -60,21 +56,6 @@ Add the following to your Claude Desktop configuration file:
     "cloud-logging": {
       "command": "npx",
       "args": ["tsx", "/path/to/cloud-logging-mcp/src/main.ts"],
-      "env": {
-        "GOOGLE_CLOUD_PROJECT": "your-project-id"
-      }
-    }
-  }
-}
-```
-
-**Note**: If using Bun, use:
-```json
-{
-  "mcpServers": {
-    "cloud-logging": {
-      "command": "bun",
-      "args": ["run", "/path/to/cloud-logging-mcp/src/main.ts"],
       "env": {
         "GOOGLE_CLOUD_PROJECT": "your-project-id"
       }

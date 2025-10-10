@@ -53,11 +53,10 @@ best practices for handling large queries.
 ## Development Guidelines
 
 ### Package Manager
-- Project supports both **npm** and **bun**
-- All scripts should work with both package managers
-- Prefer npm in documentation and examples for wider compatibility
-- Use `tsx` for TypeScript execution (not `bun run`)
-- Use `vitest` for testing (not `bun:test`)
+- Project uses **npm** as the package manager
+- All scripts are designed for npm
+- Use `tsx` for TypeScript execution
+- Use `vitest` for testing
 
 ### Testing
 - **Unit tests**: Run with `npm test` (E2E tests skipped)
@@ -81,7 +80,6 @@ best practices for handling large queries.
 
 ### Testing Best Practices
 - Use vitest for all tests
-- Import from 'vitest' not 'bun:test'
 - E2E tests should have proper timeouts (30s+)
 - Always consume stderr when spawning processes
 - Skip E2E tests by default (use RUN_E2E=1 to enable)

@@ -4,8 +4,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Development Workflow
 
-- Run `bun check` periodically.
-- After you've finished task, commit.
+- Run `npm run check` periodically to verify types, linting, tests, and dependencies.
+- After you've finished task, commit using the conventional commit format (see `.cursorrules`).
 
 ## Architecture
 

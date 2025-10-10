@@ -6,8 +6,5 @@
   "ignoreDependencies": [],
   "ignoreExportsUsedInFile": false,
   "ignoreBinaries": [],
-  "ignoreWorkspaces": [],
-  "bun": {
-    "entry": ["src/main.ts", "src/**/*.test.ts"]
-  }
+  "ignoreWorkspaces": []
 }
