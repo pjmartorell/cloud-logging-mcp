@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "Google Cloud Logging MCP Server - A Model Context Protocol server for accessing Google Cloud logs",
   "main": "dist/index.js",
+  "module": "./src/index.ts",
   "types": "dist/index.d.ts",
   "type": "module",
   "files": [
