@@ -87,5 +87,5 @@ best practices for handling large queries.
 - Skip E2E tests by default (use RUN_E2E=1 to enable)
 
 ### Known Issues
-- **Google Auth Library Deprecation Warnings**: The application may display warnings about `fromStream` and `fromJSON` methods being deprecated. These warnings originate from the Google Cloud SDK's internal authentication library (google-auth-library) and do not affect functionality. The project uses the latest versions with npm overrides to ensure consistency, but Google's SDKs internally still use these deprecated methods. These warnings will be resolved when Google updates their client libraries.
+- **Google Auth Library v10 gRPC Authentication**: The `@google-cloud/logging` SDK's gRPC transport requires manual credential creation when using `google-auth-library@10.x` with `authorized_user` credentials (from `gcloud auth application-default login`). The project creates gRPC credentials manually using `@grpc/grpc-js` and passes them via the `sslCreds` option. This workaround ensures proper authentication by manually setting the `authorization` header with an access token obtained from `GoogleAuth`.
 

@@ -1,5 +1,7 @@
 import { Logging } from "@google-cloud/logging";
 import { ProjectsClient } from "@google-cloud/resource-manager";
+import { GoogleAuth } from "google-auth-library";
+import grpc from "@grpc/grpc-js";
 import { ok, err, type Result } from "neverthrow";
 import type { CloudLoggingApi, CloudLoggingQuery, RawLogEntry, LogSeverity } from "../domain/api";
 import type { CloudLoggingError } from "../domain/api";
@@ -7,21 +9,66 @@ import type { ListProjectsInput, ListProjectsOutput, Project } from "../domain/l
 import { createLogId } from "../domain/log-id";
 
 export class GoogleCloudLoggingApiClient implements CloudLoggingApi {
-  private logging: Logging;
   private projectsClient: ProjectsClient;
+  private auth: GoogleAuth;
+  private projectId: string;
 
   constructor() {
     // Initialize with explicit configuration to ensure credentials are picked up
-    const projectId = process.env.GOOGLE_CLOUD_PROJECT;
+    this.projectId = process.env.GOOGLE_CLOUD_PROJECT ?? "";
     
-    // Use default SDK behavior with Application Default Credentials
-    this.logging = new Logging({
-      projectId,
+    // Create GoogleAuth instance for obtaining access tokens
+    // This is necessary for creating manual gRPC credentials that work with v10
+    this.auth = new GoogleAuth({
+      scopes: [
+        'https://www.googleapis.com/auth/cloud-platform',
+        'https://www.googleapis.com/auth/logging.read',
+      ],
     });
     
     this.projectsClient = new ProjectsClient({
-      projectId,
+      projectId: this.projectId,
     });
+  }
+  
+  /**
+   * Initialize the Logging client with manual gRPC credentials.
+   * This workaround is needed because google-auth-library v10 has issues
+   * with gRPC authentication when using authorized_user credentials.
+   */
+  private async getLoggingClient(): Promise<Logging> {
+    try {
+      // Get auth client and access token
+      const authClient = await this.auth.getClient();
+      const tokenResponse = await authClient.getAccessToken();
+      
+      if (tokenResponse.token === null || tokenResponse.token === undefined) {
+        throw new Error('Failed to obtain access token');
+      }
+      
+      // Create gRPC credentials manually
+      const sslCreds = grpc.credentials.combineChannelCredentials(
+        grpc.credentials.createSsl(),
+        grpc.credentials.createFromMetadataGenerator((_params, callback) => {
+          const metadata = new grpc.Metadata();
+          metadata.set('authorization', `Bearer ${tokenResponse.token}`);
+          metadata.set('x-goog-user-project', this.projectId);
+          callback(null, metadata);
+        })
+      );
+      
+      // Create logging client with manual gRPC credentials
+      // Note: sslCreds is not in the TypeScript types but is supported by the SDK runtime
+      const options: Record<string, unknown> = {
+        projectId: this.projectId,
+        sslCreds,
+      };
+      return new Logging(options);
+    } catch (error) {
+      // Fallback to default initialization if manual credentials fail
+      // This should rarely happen in production
+      return new Logging({ projectId: this.projectId });
+    }
   }
 
   async entries(params: CloudLoggingQuery): Promise<
@@ -34,6 +81,9 @@ export class GoogleCloudLoggingApiClient implements CloudLoggingApi {
     >
   > {
     try {
+      // Get logging client with proper gRPC credentials
+      const logging = await this.getLoggingClient();
+      
       interface GetEntriesRequest {
         projectIds: string[];
         filter: string;
@@ -55,7 +105,7 @@ export class GoogleCloudLoggingApiClient implements CloudLoggingApi {
         ? params.resourceNames
         : request.resourceNames;
 
-      const getEntriesResult = await this.logging.getEntries(request);
+      const getEntriesResult = await logging.getEntries(request);
       const entries = getEntriesResult[0];
       const response = getEntriesResult[2];
 
