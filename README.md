@@ -17,7 +17,23 @@ A Model Context Protocol (MCP) server that provides access to Google Cloud Loggi
 - Google Cloud credentials configured
 - Access to Google Cloud Logging API
 
-### Quick Start
+### Quick Start with Smithery (Recommended)
+
+[Smithery.ai](https://smithery.ai) provides the easiest way to deploy and use this MCP server:
+
+1. **Deploy to Smithery:**
+   - Visit [smithery.ai](https://smithery.ai)
+   - Click "Deploy" and connect your GitHub repository
+   - Configure your Google Cloud credentials in the Smithery dashboard
+   - Your server will be automatically deployed with built-in authentication
+
+2. **Test Locally with Smithery:**
+   ```bash
+   npm run dev
+   ```
+   This will start the server and port-forward it to the Smithery Playground via ngrok.
+
+### Local Development
 
 1. **Install dependencies:**
    ```bash
@@ -26,7 +42,7 @@ A Model Context Protocol (MCP) server that provides access to Google Cloud Loggi
 
 2. **Set up Google Cloud credentials:**
    ```bash
-   # Option 1: Use gcloud CLI
+   # Option 1: Use gcloud CLI (recommended for local development)
    gcloud auth application-default login
    
    # Option 2: Use service account
@@ -41,6 +57,8 @@ A Model Context Protocol (MCP) server that provides access to Google Cloud Loggi
 4. **Run the server:**
    ```bash
    npm start
+   # Or for local development with watch mode:
+   npm run dev:local
    ```
 
 ### Using with Claude Desktop
@@ -161,6 +179,29 @@ NODE_DEBUG=google-* npm start
 You can also use the health check resource to verify system status:
 - The server exposes a `health://status` resource that checks environment configuration, authentication, and API connectivity
 
+## Configuration
+
+### Smithery Configuration
+
+When deploying to [Smithery.ai](https://smithery.ai), you can configure the server through the dashboard. The server accepts the following configuration options:
+
+- **projectId** (optional): Google Cloud Project ID
+- **debug** (optional): Enable debug logging for troubleshooting
+- **credentials** (optional): Google Cloud service account credentials
+  - Provide as JSON key file path, or
+  - Provide client email and private key directly
+
+See `smithery.yaml` for the complete configuration schema.
+
+### Environment Variables
+
+For local development or Claude Desktop usage:
+
+- `GOOGLE_CLOUD_PROJECT`: Your Google Cloud project ID
+- `GOOGLE_APPLICATION_CREDENTIALS`: Path to service account JSON key file (optional)
+- `DEBUG`: Set to `"true"` to enable debug logging
+- `NODE_DEBUG`: Set to `"google-auth"` for authentication debugging
+
 ## Troubleshooting
 
 1. **Authentication errors:** Ensure your Google Cloud credentials are properly configured
@@ -200,8 +241,11 @@ npm run lint
 # Format code
 npm run format
 
-# Start dev server with watch mode
+# Start dev server with Smithery (port-forwards to playground)
 npm run dev
+
+# Start local dev server with watch mode
+npm run dev:local
 
 # Build for production
 npm run build

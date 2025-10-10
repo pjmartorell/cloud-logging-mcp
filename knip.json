@@ -1,9 +1,9 @@
 {
   "$schema": "https://unpkg.com/knip@5/schema.json",
-  "entry": ["src/main.ts", "src/port/index.ts", "src/util/index.ts"],
+  "entry": ["src/main.ts", "src/index.ts", "src/port/index.ts", "src/util/index.ts"],
   "project": ["src/**/*.ts"],
   "ignore": [],
-  "ignoreDependencies": [],
+  "ignoreDependencies": ["@smithery/sdk"],
   "ignoreExportsUsedInFile": false,
   "ignoreBinaries": [],
   "ignoreWorkspaces": []

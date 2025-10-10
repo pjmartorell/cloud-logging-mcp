@@ -1,10 +1,53 @@
 import { McpServer, type ReadResourceCallback } from "@modelcontextprotocol/sdk/server/mcp.js";
+import { z } from "zod";
 import { GoogleCloudLoggingApiClient } from "./adapter/api";
 import { LogCacheImpl } from "./adapter/cache";
 import { createTools } from "./port";
 import { performHealthCheck } from "./util/health-check";
 
-export const createServer = (): McpServer => {
+// Configuration schema for Smithery
+export const configSchema = z.object({
+  projectId: z.string().optional().describe("Google Cloud Project ID (optional, can be auto-detected)"),
+  debug: z.boolean().default(false).describe("Enable debug logging for troubleshooting"),
+  credentials: z.union([
+    z.object({
+      clientEmail: z.string().describe("Google Cloud service account client email"),
+      privateKey: z.string().describe("Google Cloud service account private key"),
+    }).describe("Service account credentials as environment variables"),
+    z.object({
+      keyFilePath: z.string().describe("Path to Google Cloud service account key file (JSON)"),
+    }).describe("Service account credentials as a key file"),
+    z.string().describe("Path to Google Cloud service account key file (JSON)"),
+  ]).optional().describe("Google Cloud service account credentials (optional, uses Application Default Credentials if not provided)"),
+});
+
+export type Config = z.infer<typeof configSchema>;
+
+export const createServer = (config?: Config): McpServer => {
+  // Apply configuration from Smithery if provided
+  if (config?.projectId !== undefined) {
+    process.env.GOOGLE_CLOUD_PROJECT = config.projectId;
+  }
+  
+  if (config?.debug === true) {
+    process.env.DEBUG = "true";
+    process.env.NODE_DEBUG = "google-auth";
+  }
+  
+  if (config?.credentials !== undefined) {
+    if (typeof config.credentials === 'string') {
+      // Direct string path format
+      process.env.GOOGLE_APPLICATION_CREDENTIALS = config.credentials;
+    } else if ('clientEmail' in config.credentials && 'privateKey' in config.credentials) {
+      // Using client email and private key directly
+      process.env.GOOGLE_CLIENT_EMAIL = config.credentials.clientEmail;
+      process.env.GOOGLE_PRIVATE_KEY = config.credentials.privateKey;
+    } else if ('keyFilePath' in config.credentials) {
+      // Using a key file path
+      process.env.GOOGLE_APPLICATION_CREDENTIALS = config.credentials.keyFilePath;
+    }
+  }
+
   const server = new McpServer({
     name: "Google Cloud Logging MCP",
     version: "1.0.0",
