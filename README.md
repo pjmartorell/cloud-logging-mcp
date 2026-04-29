@@ -272,9 +272,9 @@ Parameters:
 - `alignmentPeriod`: Alignment period (e.g., `"60s"`, `"300s"`, `"3600s"`)
 - `perSeriesAligner` (optional): Aligner type (e.g., `"ALIGN_RATE"`, `"ALIGN_SUM"`, `"ALIGN_MEAN"`)
 
-## Common Filter Examples
-
 For detailed release notes and version history, see [CHANGELOG.md](CHANGELOG.md).
+
+## Common Filter Examples
 
 - **By severity:** `severity>=ERROR`
 - **By time range:** `timestamp>="2024-01-01T00:00:00Z"`
