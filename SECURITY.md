@@ -10,7 +10,7 @@ If you discover a security vulnerability in this project, please report it priva
 
 1. **Do NOT** create a public GitHub issue
 2. Use GitHub's [private vulnerability reporting](https://github.com/pjmartorell/cloud-logging-mcp/security/advisories/new)
-3. Or email the maintainer directly (see `package.json` for contact)
+3. Or contact [@pjmartorell](https://github.com/pjmartorell) directly via GitHub
 
 We aim to respond within 48 hours and will coordinate disclosure timing with you.
 

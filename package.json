@@ -44,7 +44,7 @@
     "ai",
     "nodejs"
   ],
-  "author": "",
+  "author": "pjmartorell",
   "license": "MIT",
   "dependencies": {
     "@google-cloud/logging": "^11.2.1",
