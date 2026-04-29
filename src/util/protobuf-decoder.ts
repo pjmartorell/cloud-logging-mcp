@@ -13,6 +13,29 @@ function isRecordLike(value: unknown): boolean {
 }
 
 /**
+ * Converts a JSON-stringified Buffer back to a Buffer
+ * JSON.stringify converts Buffers to {type: "Buffer", data: [1,2,3,...]}
+ */
+function convertJsonifiedBufferIfNeeded(value: unknown): unknown {
+  if (!isRecordLike(value)) {
+    return value;
+  }
+
+  const obj = value as Record<string, unknown>;
+  
+  if (
+    'type' in obj &&
+    'data' in obj &&
+    obj.type === 'Buffer' &&
+    Array.isArray(obj.data)
+  ) {
+    return Buffer.from(obj.data as number[]);
+  }
+
+  return value;
+}
+
+/**
  * Decodes a protobuf payload with type_url and value Buffer
  */
 export async function decodeProtoPayload(
@@ -41,11 +64,15 @@ export async function decodeProtoPayload(
   }
 
   const typeUrl = payloadRecord.type_url;
-  const value = payloadRecord.value;
+  const rawValue = payloadRecord.value;
 
   if (typeof typeUrl !== 'string') {
     return ok(payloadRecord);
   }
+
+  // Check if value is a JSON-stringified Buffer: {type: "Buffer", data: [...]}
+  // and convert it back to a Buffer
+  const value = convertJsonifiedBufferIfNeeded(rawValue);
 
   // Handle Buffer value
   if (!Buffer.isBuffer(value) && !(value instanceof Uint8Array)) {

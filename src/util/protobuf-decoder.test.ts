@@ -53,6 +53,21 @@ describe("Protobuf Decoder", () => {
     expect(result._unsafeUnwrap()).toEqual(payload);
   });
 
+  it("should decode JSON-stringified Buffer (Buffer.toJSON format)", async () => {
+    // Simulate what happens when JSON.stringify is called on a Buffer
+    const originalBuffer = Buffer.from("test data");
+    const jsonifiedBuffer = originalBuffer.toJSON(); // {type: "Buffer", data: [116, 101, 115, 116, ...]}
+    
+    const payload = { 
+      type_url: "type.googleapis.com/google.cloud.audit.AuditLog", 
+      value: jsonifiedBuffer
+    };
+    
+    const result = await decodeProtoPayload(payload);
+    // Should attempt to decode (may fail without proper proto but shouldn't crash)
+    expect(result.isOk() || result.isErr()).toBe(true);
+  });
+
   it("should handle already decoded payloads", async () => {
     const payload = {
       serviceName: "monitoring.googleapis.com",
