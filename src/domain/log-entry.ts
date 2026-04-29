@@ -63,16 +63,51 @@ const processSummaryFields = (fields: string[], entry: RawLogEntry): string => {
   return parts.length === 0 ? "" : redactSensitiveInfo(parts.join(", "));
 };
 
+const getHttpRequestSummary = (entry: RawLogEntry): string | undefined => {
+  const httpRequest = entry.httpRequest;
+  if (httpRequest === undefined || httpRequest === null || typeof httpRequest !== 'object') {
+    return undefined;
+  }
+
+  const method = 'requestMethod' in httpRequest ? httpRequest.requestMethod : undefined;
+  const url = 'requestUrl' in httpRequest ? httpRequest.requestUrl : undefined;
+  const status = 'status' in httpRequest ? httpRequest.status : undefined;
+  const latency = 'latency' in httpRequest ? httpRequest.latency : undefined;
+
+  if (method === undefined && url === undefined && status === undefined) {
+    return undefined;
+  }
+
+  const parts: string[] = [];
+  if (typeof method === 'string') {
+    parts.push(method);
+  }
+  if (typeof url === 'string') {
+    // Truncate long URLs
+    const truncatedUrl = url.length > 60 ? url.substring(0, 57) + '...' : url;
+    parts.push(truncatedUrl);
+  }
+  if (typeof status === 'number') {
+    parts.push(`→ ${status}`);
+  }
+  if (typeof latency === 'string') {
+    parts.push(`(${latency})`);
+  }
+
+  return parts.length > 0 ? parts.join(' ') : undefined;
+};
+
 const extractSummaryWithoutFields = (entry: RawLogEntry): string => {
-  const rawSummary = 
+  const rawSummary =
     getTextPayload(entry) ??
     getJsonMessage(entry) ??
     getProtoMessage(entry) ??
     getNestedJsonMessage(entry) ??
     stringifyProtoPayload(entry) ??
     stringifyJsonPayload(entry) ??
+    getHttpRequestSummary(entry) ??
     "";
-  
+
   return truncate(redactSensitiveInfo(rawSummary));
 };
 

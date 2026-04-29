@@ -40,6 +40,7 @@ export const listProjects = (api: CloudLoggingApi): Tool<typeof ListProjectsInpu
       } catch (error) {
         const errorMessage = error instanceof Error ? error.message : String(error);
         const isAuthError = errorMessage.includes("authentication") || errorMessage.includes("permission");
+        const isInvalidArgument = errorMessage.includes("invalid") || errorMessage.includes("INVALID_ARGUMENT");
         
         return createErrorResponse(
           isAuthError ? "AUTHENTICATION_ERROR" : "INTERNAL_ERROR",
@@ -47,8 +48,10 @@ export const listProjects = (api: CloudLoggingApi): Tool<typeof ListProjectsInpu
           {
             suggestion: isAuthError
               ? "Check authentication: run 'gcloud auth application-default login'"
-              : "Verify your Google Cloud credentials are properly configured",
-            retryable: !isAuthError,
+              : isInvalidArgument
+                ? "Check your request parameters (filter, pageToken, pageSize)"
+                : "Verify your Google Cloud credentials are properly configured",
+            retryable: !isAuthError && !isInvalidArgument,
           }
         );
       }
