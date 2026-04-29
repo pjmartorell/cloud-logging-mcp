@@ -430,7 +430,3 @@ The server follows a clean architecture pattern:
 - **API Adapter** (`adapter/api.ts`): Type-safe Google Cloud API client with error mapping and protobuf payload decoding
 - **Token Caching** (`adapter/token-caching.ts`): Caches authentication tokens with 5-minute buffer before expiry
 - **Log Entry Processing** (`domain/log-entry.ts`): Extracts summaries with HTTP request fallbacks and sensitive data redaction
-
-## License
-
-MIT
