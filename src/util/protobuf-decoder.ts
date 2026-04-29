@@ -88,14 +88,15 @@ export async function decodeProtoPayload(
     // Determine the proto file path based on the type
     const protoFile = getProtoFileForType(typeName);
     if (protoFile === undefined) {
-      // Unknown type, return original payload
-      return ok(payloadRecord);
+      // Unknown type, can't decode
+      return err(new Error(`Unknown protobuf type: ${typeName}`));
     }
 
     // Load or get cached proto root
     const root = await loadProtoRoot(protoFile);
     if (root === undefined) {
-      return ok(payloadRecord);
+      // Failed to load proto file
+      return err(new Error(`Failed to load proto file for type: ${typeName}`));
     }
 
     // Lookup the message type

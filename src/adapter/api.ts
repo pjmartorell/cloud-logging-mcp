@@ -203,11 +203,27 @@ export class GoogleCloudLoggingApiClient implements CloudLoggingApi {
             ? protoPayloadResult.value
             : this.convertProtoPayload(metadata.protoPayload); // Fallback to sync version if decode fails
 
+          // Also check if data (jsonPayload) is actually a protobuf payload
+          const jsonPayload: Record<string, unknown> | undefined = 
+            (typeof data === "object" && data !== null && !Buffer.isBuffer(data))
+              ? await (async (): Promise<Record<string, unknown> | undefined> => {
+                  // Check if it looks like a protobuf Any message
+                  if ('type_url' in data && 'value' in data) {
+                    // Try to decode as protobuf
+                    const dataPayloadResult = await decodeProtoPayload(data);
+                    return dataPayloadResult.isOk()
+                      ? dataPayloadResult.value
+                      : this.cloneObject(data); // Fallback if decode fails
+                  }
+                  return this.cloneObject(data);
+                })()
+              : undefined;
+
           return {
             insertId: createLogId(typeof metadata.insertId === 'string' ? metadata.insertId : ""),
             timestamp,
             severity: this.mapSeverity(metadata.severity),
-            jsonPayload: typeof data === "object" && data !== null && !Buffer.isBuffer(data) ? this.cloneObject(data) : undefined,
+            jsonPayload,
             textPayload: typeof data === "string" ? data : Buffer.isBuffer(data) ? data.toString() : undefined,
             protoPayload,
             labels: metadata.labels,

@@ -43,14 +43,16 @@ describe("Protobuf Decoder", () => {
     expect(result._unsafeUnwrap()).toEqual(payload);
   });
 
-  it("should return object as-is for unknown type_url", async () => {
+  it("should return error for unknown type_url", async () => {
     const payload = { 
       type_url: "type.googleapis.com/unknown.Type", 
       value: Buffer.from("test") 
     };
     const result = await decodeProtoPayload(payload);
-    expect(result.isOk()).toBe(true);
-    expect(result._unsafeUnwrap()).toEqual(payload);
+    expect(result.isErr()).toBe(true);
+    if (result.isErr()) {
+      expect(result.error.message).toContain("Unknown protobuf type");
+    }
   });
 
   it("should decode JSON-stringified Buffer (Buffer.toJSON format)", async () => {
