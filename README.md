@@ -430,3 +430,45 @@ The server follows a clean architecture pattern:
 - **API Adapter** (`adapter/api.ts`): Type-safe Google Cloud API client with error mapping and protobuf payload decoding
 - **Token Caching** (`adapter/token-caching.ts`): Caches authentication tokens with 5-minute buffer before expiry
 - **Log Entry Processing** (`domain/log-entry.ts`): Extracts summaries with HTTP request fallbacks and sensitive data redaction
+
+## Versioning
+
+This project follows [Semantic Versioning](https://semver.org/). Version numbers follow the format `MAJOR.MINOR.PATCH`:
+- **MAJOR**: Breaking changes (incompatible API changes)
+- **MINOR**: New features (backward-compatible)
+- **PATCH**: Bug fixes (backward-compatible)
+
+For the complete version history and release notes, see [CHANGELOG.md](CHANGELOG.md).
+
+For maintainers: See [RELEASING.md](RELEASING.md) for the release process and version management guidelines.
+
+## Contributing
+
+Contributions are welcome! Please:
+
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Follow the commit message format (see `.cursorrules`)
+4. Ensure all tests pass (`npm run check:all`)
+5. Push to your branch (`git push origin feature/amazing-feature`)
+6. Open a Pull Request
+
+### Commit Message Format
+
+This project enforces conventional commits with a strict format. See `.cursorrules` for details.
+
+### Development Guidelines
+
+- Use `npm run check` before committing (runs typecheck, lint, unit tests, and knip)
+- Use `npm run check:all` for full validation including E2E tests (requires GCP credentials)
+- Follow the clean architecture pattern (adapter/domain/port separation)
+- Add tests for new features
+- Update CHANGELOG.md for significant changes
+
+## Security
+
+For security concerns, please see [SECURITY.md](SECURITY.md) for our security policy and vulnerability reporting process.
+
+## License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
