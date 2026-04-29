@@ -103,6 +103,14 @@ export default [
     },
   },
   {
+    files: ['src/util/protobuf-decoder.ts'],
+    rules: {
+      // Allow type assertions and predicates for protobuf conversions
+      '@typescript-eslint/consistent-type-assertions': 'off',
+      'no-restricted-syntax': 'off',
+    },
+  },
+  {
     ignores: ['node_modules/', 'dist/', 'build/', '*.js', '!eslint.config.js', 'vite.config.ts'],
   },
 ];

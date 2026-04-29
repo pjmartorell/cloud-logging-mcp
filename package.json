@@ -52,7 +52,9 @@
     "@grpc/grpc-js": "^1.14.3",
     "@modelcontextprotocol/sdk": "^1.13.1",
     "google-auth-library": "^10.6.2",
-    "neverthrow": "^8.2.0"
+    "google-proto-files": "^5.0.1",
+    "neverthrow": "^8.2.0",
+    "protobufjs": "^8.0.3"
   },
   "devDependencies": {
     "@commitlint/cli": "^20.5.2",

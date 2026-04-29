@@ -8,6 +8,7 @@ import type { CloudLoggingApi, CloudLoggingQuery, RawLogEntry, LogSeverity } fro
 import type { CloudLoggingError } from "../domain/api";
 import type { ListProjectsInput, ListProjectsOutput, Project } from "../domain/list-projects";
 import type { AggregationInput, AggregationOutput } from "../domain/aggregate-logs";
+import { decodeProtoPayload } from "../util/protobuf-decoder.js";
 import type { LogMetricsInput, LogMetricsOutput, LogMetricsError } from "../domain/log-metrics";
 import {
   buildAggregationFilter,
@@ -189,29 +190,37 @@ export class GoogleCloudLoggingApiClient implements CloudLoggingApi {
       const entries = getEntriesResult[0];
       const response = getEntriesResult[2];
 
-      const rawEntries: RawLogEntry[] = entries.map((entry) => {
-        const metadata: Record<string, unknown> = typeof entry.metadata === 'object' && entry.metadata !== null ? entry.metadata : {};
-        const data: unknown = entry.data;
+      const rawEntries: RawLogEntry[] = await Promise.all(
+        entries.map(async (entry) => {
+          const metadata: Record<string, unknown> = typeof entry.metadata === 'object' && entry.metadata !== null ? entry.metadata : {};
+          const data: unknown = entry.data;
 
-        const timestamp = this.extractTimestamp(metadata.timestamp)
+          const timestamp = this.extractTimestamp(metadata.timestamp)
 
-        return {
-          insertId: createLogId(typeof metadata.insertId === 'string' ? metadata.insertId : ""),
-          timestamp,
-          severity: this.mapSeverity(metadata.severity),
-          jsonPayload: typeof data === "object" && data !== null && !Buffer.isBuffer(data) ? this.cloneObject(data) : undefined,
-          textPayload: typeof data === "string" ? data : Buffer.isBuffer(data) ? data.toString() : undefined,
-          protoPayload: this.convertProtoPayload(metadata.protoPayload),
-          labels: metadata.labels,
-          resource: metadata.resource,
-          httpRequest: metadata.httpRequest,
-          trace: metadata.trace,
-          spanId: metadata.spanId,
-          traceSampled: metadata.traceSampled,
-          sourceLocation: metadata.sourceLocation,
-          operation: metadata.operation,
-        };
-      });
+          // Decode protobuf payload asynchronously
+          const protoPayloadResult = await decodeProtoPayload(metadata.protoPayload);
+          const protoPayload = protoPayloadResult.isOk()
+            ? protoPayloadResult.value
+            : this.convertProtoPayload(metadata.protoPayload); // Fallback to sync version if decode fails
+
+          return {
+            insertId: createLogId(typeof metadata.insertId === 'string' ? metadata.insertId : ""),
+            timestamp,
+            severity: this.mapSeverity(metadata.severity),
+            jsonPayload: typeof data === "object" && data !== null && !Buffer.isBuffer(data) ? this.cloneObject(data) : undefined,
+            textPayload: typeof data === "string" ? data : Buffer.isBuffer(data) ? data.toString() : undefined,
+            protoPayload,
+            labels: metadata.labels,
+            resource: metadata.resource,
+            httpRequest: metadata.httpRequest,
+            trace: metadata.trace,
+            spanId: metadata.spanId,
+            traceSampled: metadata.traceSampled,
+            sourceLocation: metadata.sourceLocation,
+            operation: metadata.operation,
+          };
+        })
+      );
 
       return ok({
         entries: rawEntries,
@@ -355,8 +364,13 @@ export class GoogleCloudLoggingApiClient implements CloudLoggingApi {
         updateTime: typeof project.updateTime === 'string' ? project.updateTime : undefined,
       }));
 
+      // Respect pageSize parameter by limiting results
+      const limitedProjects = (params.pageSize !== undefined && params.pageSize > 0)
+        ? mappedProjects.slice(0, params.pageSize)
+        : mappedProjects;
+
       return {
-        projects: mappedProjects,
+        projects: limitedProjects,
         nextPageToken: response?.nextPageToken ?? undefined,
       };
     } catch (error) {
