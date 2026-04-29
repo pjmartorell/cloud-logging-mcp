@@ -361,7 +361,9 @@ export class GoogleCloudLoggingApiClient implements CloudLoggingApi {
       };
     } catch (error) {
       const errorObj = error instanceof Error ? error : { message: String(error) };
-      throw new Error(`Failed to list projects: ${errorObj.message ?? 'Unknown error'}`);
+      throw new Error(`Failed to list projects: ${errorObj.message ?? 'Unknown error'}`, {
+        cause: error,
+      });
     }
   }
 

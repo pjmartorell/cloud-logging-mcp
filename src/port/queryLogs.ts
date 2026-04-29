@@ -13,9 +13,7 @@ export const queryLogsInputSchema = z.object({
   endTime: z.string().describe("End time in ISO 8601 format (e.g., '2024-01-01T23:59:59Z')"),
   resourceNames: z
     .array(
-      z.string({
-        description: "e.g. 'projects/<project_id>/logs/run.googleapis.com%2Fstdout'",
-      }),
+      z.string().describe("e.g. 'projects/<project_id>/logs/run.googleapis.com%2Fstdout'"),
     )
     .optional(),
   pageSize: z.number().optional(),
@@ -27,9 +25,7 @@ export const queryLogsInputSchema = z.object({
     .optional(),
   summaryFields: z
     .array(
-      z.string({
-        description: "Fields to include in the summary, e.g. ['labels.service', 'textPayload']",
-      }),
+      z.string().describe("Fields to include in the summary, e.g. ['labels.service', 'textPayload']"),
     )
     .optional(),
 });

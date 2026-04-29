@@ -3,7 +3,6 @@ import typescript from '@typescript-eslint/eslint-plugin';
 import typescriptParser from '@typescript-eslint/parser';
 import functional from 'eslint-plugin-functional';
 import unicorn from 'eslint-plugin-unicorn';
-import eslintComments from 'eslint-plugin-eslint-comments';
 
 export default [
   js.configs.recommended,
@@ -32,7 +31,6 @@ export default [
       '@typescript-eslint': typescript,
       'functional': functional,
       'unicorn': unicorn,
-      'eslint-comments': eslintComments,
     },
     rules: {
       // TypeScript strict rules - no any types allowed
@@ -81,9 +79,6 @@ export default [
           message: 'Type predicates are not allowed because of the unsoundness. Rethink your type design.',
         },
       ],
-      
-      // Ban eslint-disable comments
-      'eslint-comments/no-use': ['error', { allow: [] }],
     },
   },
   {
@@ -105,7 +100,6 @@ export default [
     rules: {
       // Allow console in main.ts for STDIO transport
       'no-console': 'off',
-      'eslint-comments/no-use': 'off',
     },
   },
   {

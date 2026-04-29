@@ -32,7 +32,7 @@ const ToolsListResponseSchema = z.object({
     inputSchema: z.object({
       type: z.string(),
       required: z.array(z.string()).optional(),
-      properties: z.record(z.unknown()).optional(),
+      properties: z.record(z.string(), z.unknown()).optional(),
     }),
   })),
 });
