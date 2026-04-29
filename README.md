@@ -12,6 +12,73 @@ A Model Context Protocol (MCP) server that provides comprehensive access to Goog
 - **Protobuf Decoding**: Automatic decoding of AuditLog and other protobuf messages for readable output
 - **HTTP Transport**: Streamable HTTP support via Smithery with STDIO backwards compatibility
 
+## Comparison with Official Google Cloud Logging MCP
+
+<details>
+<summary><strong>How does this compare to Google's official MCP?</strong></summary>
+
+Google Cloud provides an [official Cloud Logging MCP server](https://docs.cloud.google.com/logging/docs/reference/v2_mcp/mcp) at `https://logging.googleapis.com/mcp`. Both servers provide access to Google Cloud Logging, but they serve different use cases and have complementary strengths.
+
+### Core Functionality
+
+Both MCP servers provide the fundamental capability to query and retrieve log entries from Google Cloud Logging with filtering, pagination, and time range support.
+
+### Key Differences
+
+#### Analysis & Developer Experience (This MCP)
+
+This server is optimized for **log analysis, debugging, and monitoring workflows**:
+
+| Feature | This MCP | Google Official MCP |
+|---------|----------|---------------------|
+| **Protobuf Decoding** | ✅ Automatic decoding of AuditLog and other protobuf messages | ❌ Returns raw Buffer byte arrays |
+| **Log Aggregations** | ✅ Time-series and count aggregations via `aggregateLogs` | ❌ Not available |
+| **Metrics Integration** | ✅ Query Cloud Monitoring metrics via `queryLogMetrics` | ❌ Not available |
+| **HTTP Request Summaries** | ✅ Auto-extracts and formats HTTP request info (method, URL, status, latency) | ❌ Raw httpRequest objects |
+| **Custom Summary Fields** | ✅ Specify which fields to include in summaries | ❌ Full logs only |
+| **Single Log Lookup** | ✅ Get individual log by ID via `getLogDetail` | ❌ Must query with filters |
+| **Project Discovery** | ✅ List and filter accessible projects | ❌ Not available |
+| **Multi-Project Support** | ✅ Query across multiple projects | ⚠️ Single project only per query |
+| **Deployment Flexibility** | ✅ Self-hosted (STDIO or HTTP via Smithery) | ❌ Google-hosted endpoint only |
+
+#### Infrastructure Management (Google Official MCP)
+
+Google's official MCP excels at **log infrastructure and configuration management**:
+
+| Feature | Google Official MCP | This MCP |
+|---------|---------------------|----------|
+| **Bucket Management** | ✅ Get and list log buckets | ❌ Not available |
+| **View Management** | ✅ Get and list log bucket views (IAM/access control) | ❌ Not available |
+| **Log Name Discovery** | ✅ List available log names in a project | ❌ Not available |
+| **Managed Hosting** | ✅ Fully managed cloud endpoint with enterprise support | ⚠️ Self-hosted |
+
+### Use Case Recommendations
+
+**Use this MCP when you need to:**
+- Debug applications and investigate errors with decoded AuditLog messages
+- Perform time-series analysis and aggregations on log data
+- Correlate logs with Cloud Monitoring metrics
+- Build dashboards or reports from log data
+- Work with HTTP access logs (Cloud Run, App Engine, Load Balancers)
+- Run locally during development or in air-gapped environments
+- Query logs across multiple projects
+
+**Use Google's official MCP when you need to:**
+- Manage log bucket configurations and retention policies
+- Set up or modify log views for access control
+- Discover available log names in a project
+- Leverage Google Cloud's managed infrastructure and enterprise support
+
+### Complementary Approach
+
+Both MCPs can be used together to cover the full spectrum of logging needs:
+- **This MCP**: Daily log analysis, debugging, monitoring, and metrics
+- **Google Official MCP**: Log infrastructure setup, bucket/view management, and discovery
+
+The automatic protobuf decoding in this MCP is particularly valuable for audit logs, which are commonly returned as unreadable byte arrays in raw API responses.
+
+</details>
+
 ## Getting Started
 
 ### Prerequisites
