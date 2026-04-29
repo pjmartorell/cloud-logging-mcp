@@ -10,7 +10,8 @@
     "dist",
     "smithery.yaml",
     "README.md",
-    "LICENSE"
+    "LICENSE",
+    "SECURITY.md"
   ],
   "scripts": {
     "dev": "smithery dev",
