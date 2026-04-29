@@ -7,15 +7,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-### Added
-- Comprehensive SECURITY.md with production deployment guidance
-- RELEASING.md documenting the version management and release process
-- Author field in package.json
-
-### Changed
-- LICENSE moved to dedicated file following GitHub best practices
-- Updated CLAUDE.md with recent architectural improvements
-
 ## [1.0.0] - 2026-04-29
 
 ### Added
@@ -24,9 +15,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Metrics Queries**: Cloud Monitoring metrics support via `queryLogMetrics` tool
 - **HTTP Transport**: Smithery HTTP streaming support with STDIO backwards compatibility
 - **HTTP Log Summaries**: Automatic extraction of HTTP request info (method, URL, status, latency) for access logs
+- **Comprehensive Documentation**: SECURITY.md, RELEASING.md, CHANGELOG.md, LICENSE file, and updated CLAUDE.md
 - Custom `resolvePath` for protobuf imports to resolve nested Google proto dependencies
 - Test coverage for protobuf decoder to catch loading issues
 - Comparison documentation with Google's official Cloud Logging MCP
+- Author field in package.json
 
 ### Fixed
 - `listProjects` `pageSize` parameter being ignored (now properly limits results)
@@ -46,6 +39,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Reduced security vulnerabilities from 30 to 10
 - Removed `eslint-plugin-eslint-comments` (incompatible with ESLint 10)
 - Removed `google-auth-library` override (no longer needed)
+- LICENSE moved to dedicated file following GitHub best practices
+- Updated CLAUDE.md with recent architectural improvements (HTTP transport, protobuf decoder, token caching)
 
 ### Security
 - Addressed 20 moderate/high/critical security vulnerabilities in dependencies
