@@ -134,13 +134,13 @@ export async function decodeProtoPayload(
  */
 function getProtoFileForType(typeName: string): string | undefined {
   if (typeName.startsWith('google.cloud.audit.')) {
-    return 'google/cloud/audit/audit_log.proto';
+    return 'cloud/audit/audit_log.proto';
   }
   if (typeName.startsWith('google.rpc.')) {
-    return 'google/rpc/status.proto';
+    return 'rpc/status.proto';
   }
   if (typeName.startsWith('google.protobuf.')) {
-    return 'google/protobuf/any.proto';
+    return 'protobuf/any.proto';
   }
   // Add more mappings as needed
   return undefined;
