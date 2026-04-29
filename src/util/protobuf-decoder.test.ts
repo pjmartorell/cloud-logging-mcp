@@ -70,6 +70,39 @@ describe("Protobuf Decoder", () => {
     expect(result.isOk() || result.isErr()).toBe(true);
   });
 
+  it("should successfully load AuditLog proto and attempt decode", async () => {
+    // Test that the proto file loads correctly with proper import resolution
+    // We use invalid bytes to just test that proto loading works
+    const invalidBytes = Buffer.from([0x12, 0x14]);
+    
+    const payload = {
+      type_url: "type.googleapis.com/google.cloud.audit.AuditLog",
+      value: invalidBytes
+    };
+    
+    const result = await decodeProtoPayload(payload);
+    
+    // The decode will fail due to invalid bytes, but the error should be about
+    // protobuf decoding, not "proto file not found" - proving the proto loaded
+    if (result.isErr()) {
+      const errorMsg = result.error.message;
+      // Should NOT be proto loading errors
+      expect(errorMsg).not.toContain('Failed to load proto');
+      expect(errorMsg).not.toContain('Unknown protobuf type');
+      // Should be a protobuf decode error (proving proto was loaded and decode attempted)
+      // Common protobuf errors: "wire type", "index out of range", "offset", "invalid"
+      expect(
+        errorMsg.includes('wire') ||
+        errorMsg.includes('offset') ||
+        errorMsg.includes('invalid') ||
+        errorMsg.includes('index out of range')
+      ).toBe(true);
+    } else {
+      // If it somehow succeeded with random bytes, that's also fine for this test
+      expect(result.isOk()).toBe(true);
+    }
+  });
+
   it("should handle already decoded payloads", async () => {
     const payload = {
       serviceName: "monitoring.googleapis.com",

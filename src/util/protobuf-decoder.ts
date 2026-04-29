@@ -1,6 +1,7 @@
 import protobuf from 'protobufjs';
 import { getProtoPath } from 'google-proto-files';
 import { Result, ok, err } from 'neverthrow';
+import path from 'path';
 
 // Cache for loaded proto roots
 const protoCache = new Map<string, protobuf.Root>();
@@ -157,7 +158,20 @@ async function loadProtoRoot(protoFile: string): Promise<protobuf.Root | undefin
 
   try {
     const protoPath = getProtoPath(protoFile);
-    const root = await protobuf.load(protoPath);
+    
+    // google-proto-files puts everything under its own package root,
+    // so imports like "google/api/..." must resolve from there
+    const packageRoot = path.resolve(path.dirname(protoPath), '../../..');
+
+    const root = new protobuf.Root();
+    root.resolvePath = (_origin: string, target: string): string => {
+      if (path.isAbsolute(target)) {
+        return target;
+      }
+      return path.join(packageRoot, target);
+    };
+    
+    await root.load(protoPath);
     protoCache.set(protoFile, root);
     return root;
   } catch (error) {
