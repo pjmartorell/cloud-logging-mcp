@@ -272,32 +272,9 @@ Parameters:
 - `alignmentPeriod`: Alignment period (e.g., `"60s"`, `"300s"`, `"3600s"`)
 - `perSeriesAligner` (optional): Aligner type (e.g., `"ALIGN_RATE"`, `"ALIGN_SUM"`, `"ALIGN_MEAN"`)
 
-## Recent Updates (April 2026)
-
-### New Features
-- **Protobuf Decoding**: Automatic decoding of AuditLog and other protobuf messages for human-readable output
-- **Log Aggregation**: Time-series and count aggregations via `aggregateLogs` tool
-- **Metrics Queries**: Cloud Monitoring metrics support via `queryLogMetrics` tool
-- **HTTP Transport**: Smithery HTTP streaming support with STDIO backwards compatibility
-- **HTTP Log Summaries**: Automatic extraction of HTTP request info (method, URL, status, latency) for access logs
-
-### Bug Fixes
-- Fixed `listProjects` `pageSize` parameter being ignored (now properly limits results)
-- Fixed protobuf payloads returned as raw Buffer byte arrays (now properly decoded)
-- Fixed invalid `pageToken` errors incorrectly marked as retryable
-- Fixed proto import resolution for nested Google proto dependencies
-- Fixed JSON-stringified Buffer detection and conversion
-
-### Dependency Updates
-- Updated to TypeScript 6.0.3
-- Updated to Vitest 4.1.5
-- Updated to Zod 4.3.6
-- Updated to ESLint 10.2.1
-- Updated Smithery CLI to 4.11.0 and SDK to 4.3.0
-- Updated all Google Cloud SDKs to latest versions
-- Reduced security vulnerabilities from 30 to 10
-
 ## Common Filter Examples
+
+For detailed release notes and version history, see [CHANGELOG.md](CHANGELOG.md).
 
 - **By severity:** `severity>=ERROR`
 - **By time range:** `timestamp>="2024-01-01T00:00:00Z"`
