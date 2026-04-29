@@ -34,7 +34,12 @@
     "check:all": "concurrently -c auto -g \"npm run typecheck\" \"npm run lint\" \"npm run test:all\" \"npm run knip\"",
     "clean": "rm -rf dist",
     "prepublishOnly": "npm run build:stdio",
-    "prepare": "husky"
+    "prepare": "husky",
+    "version": "npm run check:all && git add -A",
+    "postversion": "git push origin main --follow-tags",
+    "release:patch": "npm version patch -m 'chore: release v%s'",
+    "release:minor": "npm version minor -m 'chore: release v%s'",
+    "release:major": "npm version major -m 'chore: release v%s'"
   },
   "keywords": [
     "mcp",

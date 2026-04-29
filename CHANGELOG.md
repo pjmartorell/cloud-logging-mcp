@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- Comprehensive SECURITY.md with production deployment guidance
+- RELEASING.md documenting the version management and release process
+- Author field in package.json
+
+### Changed
+- LICENSE moved to dedicated file following GitHub best practices
+- Updated CLAUDE.md with recent architectural improvements
+
 ## [1.0.0] - 2026-04-29
 
 ### Added
