@@ -1,6 +1,6 @@
 {
   "name": "cloud-logging-mcp",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Google Cloud Logging MCP Server - A Model Context Protocol server for accessing Google Cloud logs",
   "main": "dist/index.js",
   "module": "./src/index.ts",
@@ -35,7 +35,7 @@
     "clean": "rm -rf dist",
     "prepublishOnly": "npm run build:stdio",
     "prepare": "husky",
-    "version": "npm run check:all && git add -A",
+    "version": "npm run check && git add -A",
     "postversion": "git push origin main --follow-tags",
     "release:patch": "npm version patch -m 'chore: release v%s'",
     "release:minor": "npm version minor -m 'chore: release v%s'",
