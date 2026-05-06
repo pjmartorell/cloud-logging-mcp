@@ -24,7 +24,7 @@ export const getLogDetailTool = (dependencies: {
 }): Tool<typeof inputSchema> => {
   return {
     name: "getLogDetail",
-    description: "Returns the whole record of a log with the given ID",
+    description: "Returns the full decoded record of a single log entry by its ID. Only works for project-level log IDs. If you retrieved a log entry via queryLogs with resourceNames=['organizations/...'], those log IDs are org-scoped and this tool will not find them — use queryLogs with summaryFields instead to read the fields you need from those entries.",
     inputSchema: inputSchema,
     handler: async ({ input }: { input: GetLogDetailInput }): Promise<{ content: Array<{ type: "text"; text: string }> }> => {
       const projectId = input.projectId;

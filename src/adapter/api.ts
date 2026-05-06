@@ -552,6 +552,7 @@ export class GoogleCloudLoggingApiClient implements CloudLoggingApi {
       const entriesResult = await this.entries({
         projectId: params.projectId,
         filter: filterResult.value,
+        resourceNames: params.resourceNames,
         pageSize: params.pageSize ?? 1000, // Default to larger page size for aggregation
         pageToken: params.pageToken,
         orderBy: { timestamp: "asc" },

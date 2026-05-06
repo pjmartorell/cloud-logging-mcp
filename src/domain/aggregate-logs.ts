@@ -18,6 +18,7 @@ export interface AggregationInput {
     | { type: "count" }
     | { type: "group_by"; groupBy: string[] }
     | { type: "time_series"; timeInterval: TimeInterval };
+  resourceNames?: string[];
   pageSize?: number;
   pageToken?: string;
 }

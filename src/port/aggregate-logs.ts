@@ -12,10 +12,10 @@ import { createSuccessResponse, createErrorResponse } from "./types";
  * Zod schema for aggregation input
  */
 const aggregateLogsInputSchema = z.object({
-  projectId: z.string().describe("Google Cloud project ID"),
+  projectId: z.string().describe("Google Cloud project ID. If unknown, call listProjects first to discover available projects."),
   startTime: z.string().describe("Start time in ISO 8601 format (e.g., '2024-01-01T00:00:00Z')"),
   endTime: z.string().describe("End time in ISO 8601 format (e.g., '2024-01-01T23:59:59Z')"),
-  filter: z.string().optional().describe("Additional filter expression (e.g., 'severity>=ERROR')"),
+  filter: z.string().optional().describe("Additional filter expression (e.g., 'severity>=ERROR'). When using SEARCH() with field filters, always join with AND."),
   aggregation: z.discriminatedUnion("type", [
     z.object({
       type: z.literal("count").describe("Count total number of log entries"),
@@ -29,6 +29,10 @@ const aggregateLogsInputSchema = z.object({
       timeInterval: z.enum(["1m", "5m", "15m", "30m", "1h", "6h", "12h", "24h"]).describe("Time bucket interval"),
     }),
   ]).describe("Aggregation configuration"),
+  resourceNames: z
+    .array(z.string())
+    .optional()
+    .describe("Scope the aggregation to specific resources. Use 'organizations/<orgId>' to aggregate organization-level audit logs. Example: ['organizations/123456789']. projectId is still required as auth anchor."),
   pageSize: z.number().optional().describe("Maximum number of log entries to fetch (default: 1000)"),
   pageToken: z.string().optional().describe("Page token for pagination"),
 });
@@ -45,10 +49,20 @@ export function createAggregateLogsTool(api: CloudLoggingApi): Tool<typeof aggre
 - **group_by**: Group logs by specific fields (e.g., severity, resource type, labels) and count entries in each group
 - **time_series**: Aggregate logs over time intervals to see trends
 
-Examples:
+COMMON RESOURCE TYPES (use in filter):
+- App Engine service: resource.type="gae_app" AND resource.labels.module_id="my-service"
+- Cloud Run service: resource.type="cloud_run_revision" AND resource.labels.service_name="my-service"
+- Cloud Function: resource.type="cloud_function" AND resource.labels.function_name="my-fn"
+- GKE container: resource.type="k8s_container" AND resource.labels.namespace_name="prod"
+
+ORG-LEVEL LOGS:
+Pass resourceNames: ["organizations/<orgId>"] to aggregate organization-level audit logs (org policy changes, IAM). projectId is still required as auth anchor.
+
+EXAMPLES:
 - Count errors in the last hour: aggregation={type: "count"}, filter="severity>=ERROR"
 - Group by severity: aggregation={type: "group_by", groupBy: ["severity"]}
-- Error trends per 5 minutes: aggregation={type: "time_series", timeInterval: "5m"}, filter="severity=ERROR"`,
+- Error trends per 5 minutes: aggregation={type: "time_series", timeInterval: "5m"}, filter="severity=ERROR"
+- Count org policy changes: aggregation={type: "count"}, filter="protoPayload.serviceName='orgpolicy.googleapis.com'", resourceNames=["organizations/123456789"]`,
     inputSchema: aggregateLogsInputSchema,
     handler: async ({ input }): Promise<{ content: Array<{ type: "text"; text: string }> }> => {
       const startTime = Date.now();
@@ -61,6 +75,7 @@ Examples:
           endTime: input.endTime,
           filter: input.filter,
           aggregation: input.aggregation,
+          resourceNames: input.resourceNames,
           pageSize: input.pageSize,
           pageToken: input.pageToken,
         };

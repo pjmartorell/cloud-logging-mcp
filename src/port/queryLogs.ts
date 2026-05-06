@@ -7,15 +7,14 @@ import type { Tool } from "./types";
 import { createSuccessResponse, createErrorResponse } from "./types";
 
 export const queryLogsInputSchema = z.object({
-  projectId: z.string().describe("Google Cloud project ID"),
-  filter: z.string().describe("Cloud Logging filter expression. Use SEARCH() for full-text search, field comparisons for specific filters. Examples: severity>=ERROR, resource.type=\"k8s_container\", SEARCH(\"error message\")"),
+  projectId: z.string().describe("Google Cloud project ID. If unknown, call listProjects first to discover available projects."),
+  filter: z.string().describe("Cloud Logging filter expression. Use SEARCH() for full-text search, field comparisons for specific filters. Examples: severity>=ERROR, resource.type=\"k8s_container\", SEARCH(\"error message\"). NOTE: When using SEARCH() with field filters, always join them with AND (e.g. resource.type=\"gae_app\" AND SEARCH(\"timeout\")); without AND the filter may silently return no results."),
   startTime: z.string().describe("Start time in ISO 8601 format (e.g., '2024-01-01T00:00:00Z')"),
   endTime: z.string().describe("End time in ISO 8601 format (e.g., '2024-01-01T23:59:59Z')"),
   resourceNames: z
-    .array(
-      z.string().describe("e.g. 'projects/<project_id>/logs/run.googleapis.com%2Fstdout'"),
-    )
-    .optional(),
+    .array(z.string())
+    .optional()
+    .describe("Scope the query to specific resources instead of the full project. Use 'organizations/<orgId>' to query organization-level audit logs (e.g. org policy changes, IAM changes). Example: ['organizations/123456789']. Note: projectId is still required as the auth anchor even when resourceNames is set. Project-level logs are scoped automatically via projectId — only set this when querying org-level or cross-project resources."),
   pageSize: z.number().optional(),
   pageToken: z.string().optional(),
   orderBy: z
@@ -24,10 +23,9 @@ export const queryLogsInputSchema = z.object({
     })
     .optional(),
   summaryFields: z
-    .array(
-      z.string().describe("Fields to include in the summary, e.g. ['labels.service', 'textPayload']"),
-    )
-    .optional(),
+    .array(z.string())
+    .optional()
+    .describe("Fields to include in per-entry summaries. Works for plain JSON fields: textPayload, jsonPayload.*, httpRequest.*, labels.*, resource.labels.*. Does NOT expand protobuf-encoded paths (e.g. protoPayload.methodName, protoPayload.authenticationInfo.*) — use getLogDetail to read the full decoded content of those entries."),
 });
 
 type QueryLogsInput = z.infer<typeof queryLogsInputSchema>;
@@ -47,14 +45,32 @@ FILTER SYNTAX:
 
 SEARCH FUNCTION:
 Use SEARCH("text") for full-text search across all fields. Case-insensitive, searches nested JSON.
+IMPORTANT: Always combine SEARCH() with field filters using AND: resource.type="gae_app" AND SEARCH("timeout").
+Without AND, the filter may silently return no results.
 
-EXAMPLES:
+COMMON RESOURCE TYPES:
+- App Engine service: resource.type="gae_app" AND resource.labels.module_id="my-service"
+- Cloud Run service: resource.type="cloud_run_revision" AND resource.labels.service_name="my-service"
+- Cloud Function: resource.type="cloud_function" AND resource.labels.function_name="my-fn"
+- GKE container: resource.type="k8s_container" AND resource.labels.namespace_name="prod"
+- Pub/Sub subscription: resource.type="pubsub_subscription"
+- Compute Engine VM: resource.type="gce_instance"
+
+FILTER EXAMPLES:
 - Severity: severity>=ERROR, severity=WARNING
 - Resource: resource.type="k8s_container", resource.labels.namespace_name="prod"
 - Text search: textPayload:"error", jsonPayload.message:"timeout", SEARCH("OutOfMemoryError")
 - Complex: resource.type="cloud_run_revision" AND severity>=ERROR AND SEARCH("database")
 - JSON queries: jsonPayload.request.method="POST", jsonPayload.response.status>=500
 - Regex: textPayload=~"Error: .*timeout.*"
+- Pub/Sub audit: SEARCH("my-subscription-name") AND logName:"cloudaudit.googleapis.com"
+- Org policy changes: protoPayload.serviceName="orgpolicy.googleapis.com" (use with resourceNames: ["organizations/<orgId>"])
+
+ORG-LEVEL LOGS:
+To query organization audit logs (org policies, IAM changes), pass resourceNames: ["organizations/<orgId>"] along with any valid projectId as auth anchor. These logs are not accessible at project scope.
+
+SUMMARIES AND FULL CONTENT:
+Log summaries are truncated for long payloads. To read the full content of a specific log entry, call getLogDetail with the entry's id field. summaryFields works for JSON fields only — not for protobuf-encoded fields (protoPayload.*).
 
 Time range is REQUIRED. Use ISO 8601 format for startTime/endTime.`,
     inputSchema: queryLogsInputSchema,
