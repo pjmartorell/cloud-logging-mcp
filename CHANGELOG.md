@@ -7,6 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.0.1] - 2026-05-06
+
+### Added
+- `aggregateLogs` now supports `resourceNames` parameter, enabling aggregation of organization-level audit logs (same as `queryLogs`)
+
+### Fixed
+- `queryLogs` `resourceNames` field description corrected — now documents `organizations/<orgId>` for org-level logs instead of a misleading log path example
+- `queryLogs` `summaryFields` now warns that protobuf-encoded paths (`protoPayload.*`) are not expanded — use `getLogDetail` instead
+- `queryLogs` description adds warning that `SEARCH()` combined with field filters requires `AND` to avoid silent empty results
+- `getLogDetail` description warns that org-scoped log IDs (from `resourceNames` queries) are not findable by this tool
+
+### Changed
+- `queryLogs` and `aggregateLogs` `projectId` fields now guide agents to call `listProjects` when the project ID is unknown
+- `queryLogs` and `aggregateLogs` descriptions include common `resource.type` values with filter examples (App Engine, Cloud Run, Cloud Function, GKE, Pub/Sub)
+- `queryLogs` description documents log summary truncation and directs agents to `getLogDetail` for full content
+
 ## [1.0.0] - 2026-04-29
 
 ### Added
