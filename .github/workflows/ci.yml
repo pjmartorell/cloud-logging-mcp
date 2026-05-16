@@ -34,3 +34,9 @@ jobs:
 
       - name: Knip (dead code)
         run: npm run knip
+
+      - name: Build
+        run: npm run build:stdio
+
+      - name: Build smoke test
+        run: npm run test:build
