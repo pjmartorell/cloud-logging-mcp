@@ -436,6 +436,12 @@ See `smithery.yaml` for the complete configuration schema.
      ```bash
      rm -rf ~/.npm/_npx
      ```
+6. **`npx` not found / Connection closed immediately:** Cursor does not inherit your shell PATH, so `npx` managed by `mise`, `nvm`, `fnm`, or similar version managers may not be found
+   - Find your npx path: `which npx`
+   - Use the full absolute path in `mcp.json` instead of `"npx"`:
+     ```json
+     { "command": "/Users/your-username/.local/share/mise/installs/node/22.21.1/bin/npx" }
+     ```
 5. **Protobuf decoding errors:** The server automatically decodes Google Cloud AuditLog messages
    - Unknown protobuf types will return an error but won't crash the server
    - Check logs for "Unknown protobuf type" or "Failed to load proto" messages
