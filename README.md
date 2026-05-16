@@ -103,7 +103,11 @@ Add to your Cursor MCP settings (`~/.cursor/mcp.json` or Settings → MCP):
   "mcpServers": {
     "cloud-logging": {
       "command": "npx",
-      "args": ["-y", "cloud-logging-mcp"]
+      "args": ["-y", "cloud-logging-mcp"],
+      "env": {
+        "HOME": "/Users/your-username",
+        "CLOUDSDK_CONFIG": "/Users/your-username/.config/gcloud"
+      }
     }
   }
 }
@@ -121,13 +125,17 @@ Add to your Claude Desktop configuration file:
   "mcpServers": {
     "cloud-logging": {
       "command": "npx",
-      "args": ["-y", "cloud-logging-mcp"]
+      "args": ["-y", "cloud-logging-mcp"],
+      "env": {
+        "HOME": "/Users/your-username",
+        "CLOUDSDK_CONFIG": "/Users/your-username/.config/gcloud"
+      }
     }
   }
 }
 ```
 
-> **Note:** Both Cursor and Claude Desktop will use your local [Application Default Credentials](https://cloud.google.com/docs/authentication/application-default-credentials). Run `gcloud auth application-default login` once if you haven't already.
+> **Note:** Cursor and Claude Desktop do not inherit your shell environment, so `HOME` and `CLOUDSDK_CONFIG` must be set explicitly for [Application Default Credentials](https://cloud.google.com/docs/authentication/application-default-credentials) to work. Run `gcloud auth application-default login` once beforehand. You can also set `GOOGLE_CLOUD_PROJECT` to a default project ID if you don't want to pass it on every tool call.
 
 ### Install from Source
 
