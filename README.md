@@ -167,7 +167,7 @@ For development or customization:
      "mcpServers": {
        "cloud-logging": {
          "command": "npx",
-         "args": ["tsx", "/path/to/cloud-logging-mcp/src/main.ts"]
+         "args": ["-y", "tsx", "/path/to/cloud-logging-mcp/src/main.ts"]
        }
      }
    }
