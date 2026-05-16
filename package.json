@@ -5,6 +5,9 @@
   "main": "dist/index.js",
   "module": "./src/index.ts",
   "types": "dist/index.d.ts",
+  "bin": {
+    "cloud-logging-mcp": "dist/main.js"
+  },
   "type": "module",
   "files": [
     "dist",
