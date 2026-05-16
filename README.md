@@ -91,7 +91,7 @@ The automatic protobuf decoding in this MCP is particularly valuable for audit l
 The easiest way — no cloning required:
 
 ```bash
-npx -y cloud-logging-mcp
+npx -y cloud-logging-mcp@latest
 ```
 
 #### Cursor
@@ -103,7 +103,7 @@ Add to your Cursor MCP settings (`~/.cursor/mcp.json` or Settings → MCP):
   "mcpServers": {
     "cloud-logging": {
       "command": "npx",
-      "args": ["-y", "cloud-logging-mcp"],
+      "args": ["-y", "cloud-logging-mcp@latest"],
       "env": {
         "HOME": "/Users/your-username",
         "CLOUDSDK_CONFIG": "/Users/your-username/.config/gcloud"
@@ -125,7 +125,7 @@ Add to your Claude Desktop configuration file:
   "mcpServers": {
     "cloud-logging": {
       "command": "npx",
-      "args": ["-y", "cloud-logging-mcp"],
+      "args": ["-y", "cloud-logging-mcp@latest"],
       "env": {
         "HOME": "/Users/your-username",
         "CLOUDSDK_CONFIG": "/Users/your-username/.config/gcloud"
@@ -151,7 +151,7 @@ Use this method when you want fixed credentials — useful in Cursor Cloud Agent
   "mcpServers": {
     "cloud-logging": {
       "command": "npx",
-      "args": ["-y", "cloud-logging-mcp"],
+      "args": ["-y", "cloud-logging-mcp@latest"],
       "env": {
         "GOOGLE_CLOUD_PROJECT": "your-project-id",
         "GOOGLE_SERVICE_ACCOUNT_JSON": "{\"type\":\"service_account\",\"project_id\":\"...\", ...}"
@@ -430,6 +430,12 @@ See `smithery.yaml` for the complete configuration schema.
 4. **Invalid pageToken:** Page tokens expire and cannot be reused across different queries
    - Page tokens are tied to specific filter/sort combinations
    - Don't retry with the same invalid token (error is not retryable)
+5. **Stale npx cache (ERR_MODULE_NOT_FOUND or outdated behaviour):** The npx cache may be serving an old version of the package
+   - Use `cloud-logging-mcp@latest` in your MCP config args (already the recommended config) to ensure npx always checks for updates
+   - If the error persists, clear the cache manually and restart Cursor:
+     ```bash
+     rm -rf ~/.npm/_npx
+     ```
 5. **Protobuf decoding errors:** The server automatically decodes Google Cloud AuditLog messages
    - Unknown protobuf types will return an error but won't crash the server
    - Check logs for "Unknown protobuf type" or "Failed to load proto" messages
