@@ -40,3 +40,6 @@ jobs:
 
       - name: Build smoke test
         run: npm run test:build
+
+      - name: npx symlink smoke test
+        run: npm run test:npx
