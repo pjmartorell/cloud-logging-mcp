@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.0.3] - 2026-05-16
+
+### Fixed
+- README install configs for Cursor and Claude Desktop now include required `HOME` and `CLOUDSDK_CONFIG` env vars with explanations
+- Added `GOOGLE_CLOUD_PROJECT` as documented optional env var
+
 ## [1.0.2] - 2026-05-16
 
 ### Added
