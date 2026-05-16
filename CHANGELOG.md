@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.1](https://github.com/pjmartorell/cloud-logging-mcp/compare/v1.1.0...v1.1.1) (2026-05-16)
+
+
+### Bug Fixes
+
+* publish npm in same release-please workflow job ([16bcdc1](https://github.com/pjmartorell/cloud-logging-mcp/commit/16bcdc107cd605ff9ac2b48002640381d560a030))
+
 ## [1.1.0](https://github.com/pjmartorell/cloud-logging-mcp/compare/v1.0.4...v1.1.0) (2026-05-16)
 
 
