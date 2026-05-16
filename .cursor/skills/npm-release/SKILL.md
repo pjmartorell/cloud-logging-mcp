@@ -31,10 +31,11 @@ Release Please watches `main` for conventional commits and opens a release PR au
 2. Verify the generated `CHANGELOG.md` entries look complete before merging.
 3. Confirm CI is green.
 4. Merge the Release Please PR.
-5. Release Please creates the GitHub release automatically.
-6. `publish.yml` publishes to npm from that GitHub release using the `NPM_TOKEN` secret.
+5. Release Please creates the GitHub release and immediately publishes to npm — both happen in the same `release-please.yml` workflow run using the `NPM_TOKEN` secret.
 
-Do not run `npm publish` locally after merging a Release Please PR. The GitHub release triggers the publish workflow.
+Do not run `npm publish` locally after merging a Release Please PR. The same workflow job that creates the release also publishes to npm.
+
+**Why same-workflow publish?** Release Please creates the tag and GitHub release using `GITHUB_TOKEN`. Workflows triggered by `GITHUB_TOKEN` are prevented from triggering other workflows (GitHub security restriction), so a separate `publish.yml` listening on `release: published` would never fire. Running the publish step inside `release-please.yml` itself bypasses this entirely.
 
 ---
 
@@ -91,13 +92,13 @@ git push origin vX.Y.Z
 gh release create vX.Y.Z --title "vX.Y.Z - <short description>" --notes "..."
 ```
 
-Creating the GitHub release triggers `.github/workflows/publish.yml`, which runs `npm publish`. Do not also publish locally, or the workflow will attempt to publish the same version again.
+Creating the GitHub release does NOT trigger the publish workflow (GitHub blocks cross-workflow triggers from `GITHUB_TOKEN`). For manual releases, publish to npm locally after creating the release:
 
 ---
 
 ## Local Publish Exception
 
-Only publish locally if the GitHub publish workflow cannot be used. If you do this, do not create a normal GitHub release afterward unless you first disable or intentionally skip the publish workflow trigger.
+For automated releases (Release Please), publishing is handled inside the same workflow — no local publish needed. For manual releases, publish locally after creating the GitHub release (the GitHub release event cannot trigger other workflows when the release was created by `GITHUB_TOKEN`).
 
 ```bash
 npm run check
@@ -145,7 +146,8 @@ Release Please updates it automatically on merge. For manual releases, add entri
 
 ## Common Mistakes
 
-- **Double publishing**: `gh release create` triggers `publish.yml`, which runs `npm publish`; do not also run `npm publish` locally.
+- **Double publishing (automated path)**: the publish step is inside `release-please.yml`; do not also run `npm publish` locally after merging a Release Please PR.
+- **Cross-workflow trigger trap**: Release Please creates the tag/release with `GITHUB_TOKEN`, which cannot trigger other workflows. Always put the publish step in the same `release-please.yml` job, not in a separate `publish.yml` listening on `release: published`.
 - **Using bare `npm version patch`**: it creates npm's default release commit/tag and runs `postversion`, which pushes before publish success and does not satisfy this repo's commit body format.
 - **Testing stale build output**: run `npm run clean && npm run build:stdio` before `npm run test:build` and `npm run test:npx`.
 - **Forgetting `.release-please-manifest.json`**: manual releases must update it to `{ ".": "X.Y.Z" }`.
