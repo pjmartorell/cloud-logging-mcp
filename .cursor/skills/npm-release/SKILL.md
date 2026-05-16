@@ -151,3 +151,4 @@ Release Please updates it automatically on merge. For manual releases, add entri
 - **Forgetting `.release-please-manifest.json`**: manual releases must update it to `{ ".": "X.Y.Z" }`.
 - **Using `--otp` with a granular token**: granular tokens go in `npm config set //registry.npmjs.org/:_authToken=<token>`; `--otp` expects a 6-digit TOTP code.
 - **Stale npx cache after publishing**: run `rm -rf ~/.npm/_npx` to force users to re-download; document this in the GitHub release notes if a breaking version was previously cached.
+- **Editing `.cursor/skills/`**: the `.cursor/` directory is in the global gitignore; always use `git add -f .cursor/skills/npm-release/SKILL.md` when committing skill updates.
