@@ -7,6 +7,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.0.5] - 2026-05-16
+
+### Fixed
+- Server silently exiting when started via `npx` — the `.bin/cloud-logging-mcp` symlink caused `process.argv[1]` and `import.meta.url` to never match, so `main()` was never called. Both paths are now resolved through `realpathSync` before comparing.
+
+### Added
+- `isMainModule()` exported helper with unit tests covering the symlink case
+- `scripts/smoke-test-npx.mjs` end-to-end test that replicates the exact npx execution model (symlink → spawn → MCP handshake)
+- `test:npx` script wired into `prepublishOnly` and CI to prevent regressions
+
+## [1.0.4] - 2026-05-16
+
+### Fixed
+- `ERR_MODULE_NOT_FOUND` when running via `npx` — compiled ESM output was missing `.js` extensions on all relative imports, which Node.js ESM requires at runtime
+- Directory imports (`./port`, `../util`) updated to explicit index paths (`./port/index.js`, `../util/index.js`)
+
+### Changed
+- `tsconfig.build.json` now uses `module: "nodenext"` / `moduleResolution: "nodenext"` to enforce correct ESM extension requirements at compile time
+
 ## [1.0.3] - 2026-05-16
 
 ### Fixed
