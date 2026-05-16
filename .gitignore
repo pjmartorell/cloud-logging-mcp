@@ -20,6 +20,8 @@ out/
 *.swp
 *.swo
 *~
+.cursor/
+!.cursor/skills/
 
 # OS
 .DS_Store
