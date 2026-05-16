@@ -149,6 +149,19 @@ describe('Environment Validation', () => {
         expect(result.errors[0]?.variable).toBe('GOOGLE_CLOUD_PROJECT');
       });
 
+      it('should warn when both GOOGLE_SERVICE_ACCOUNT_JSON and GOOGLE_APPLICATION_CREDENTIALS are set', () => {
+        process.env.GOOGLE_CLOUD_PROJECT = 'test-project';
+        process.env.GOOGLE_SERVICE_ACCOUNT_JSON = JSON.stringify({ type: 'service_account' });
+        process.env.GOOGLE_APPLICATION_CREDENTIALS = '/path/to/key.json';
+
+        const result = validateEnvironment();
+
+        expect(result.valid).toBe(true);
+        expect(result.warnings).toHaveLength(1);
+        expect(result.warnings[0]?.variable).toBe('GOOGLE_APPLICATION_CREDENTIALS');
+        expect(result.warnings[0]?.reason).toContain('takes precedence');
+      });
+
       it('should skip ADC warning when GOOGLE_SERVICE_ACCOUNT_JSON is set', () => {
         process.env.GOOGLE_CLOUD_PROJECT = 'test-project';
         delete process.env.HOME;

@@ -142,9 +142,9 @@ Add to your Claude Desktop configuration file:
 >
 > Run `gcloud auth application-default login` once before using the server.
 
-#### Cursor Cloud Agents (no gcloud)
+#### Service Account JSON (fixed credentials)
 
-In environments where `gcloud` cannot be installed (Cursor Cloud Agents, CI pipelines, containers), authenticate with a service account JSON string instead:
+Use this method when you want fixed credentials — useful in Cursor Cloud Agents, CI pipelines, containers, or any environment where you prefer an explicit service account over `gcloud` ADC.
 
 ```json
 {
@@ -162,6 +162,8 @@ In environments where `gcloud` cannot be installed (Cursor Cloud Agents, CI pipe
 ```
 
 > **Getting the JSON value:** Download a service account key from the GCP Console (IAM → Service Accounts → Keys → Add Key → JSON), then paste the entire file contents as the value of `GOOGLE_SERVICE_ACCOUNT_JSON`. The service account needs the `Logging Viewer` and `Monitoring Viewer` roles.
+>
+> **Precedence:** When `GOOGLE_SERVICE_ACCOUNT_JSON` is set it always takes precedence over ADC and `GOOGLE_APPLICATION_CREDENTIALS`. The server warns at startup if both are configured simultaneously.
 
 ### Install from Source
 

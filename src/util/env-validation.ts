@@ -65,6 +65,17 @@ export function validateEnvironment(fsChecker: FileSystemChecker = defaultFsChec
         suggestion: 'Set GOOGLE_SERVICE_ACCOUNT_JSON to the full contents of your service account key file (e.g. the output of: cat key.json)',
       });
     }
+
+    // Warn if GOOGLE_APPLICATION_CREDENTIALS is also set — the JSON takes precedence
+    const googleAppCreds = process.env.GOOGLE_APPLICATION_CREDENTIALS;
+    if (googleAppCreds !== undefined && googleAppCreds !== '') {
+      warnings.push({
+        variable: 'GOOGLE_APPLICATION_CREDENTIALS',
+        reason: 'Both GOOGLE_SERVICE_ACCOUNT_JSON and GOOGLE_APPLICATION_CREDENTIALS are set. GOOGLE_SERVICE_ACCOUNT_JSON takes precedence and GOOGLE_APPLICATION_CREDENTIALS will be ignored.',
+        suggestion: 'Remove GOOGLE_APPLICATION_CREDENTIALS to avoid confusion, or remove GOOGLE_SERVICE_ACCOUNT_JSON to use the file-based credentials instead.',
+      });
+    }
+
     return { valid: errors.length === 0, errors, warnings };
   }
 
