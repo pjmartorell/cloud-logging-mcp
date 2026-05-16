@@ -334,7 +334,7 @@ NODE_DEBUG=google-* npm start
   "mcpServers": {
     "cloud-logging": {
       "command": "npx",
-      "args": ["tsx", "/path/to/cloud-logging-mcp/src/main.ts"],
+      "args": ["-y", "tsx", "/path/to/cloud-logging-mcp/src/main.ts"],
       "env": {
         "GOOGLE_CLOUD_PROJECT": "your-project-id",
         "NODE_DEBUG": "google-auth"
