@@ -5,6 +5,19 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.0](https://github.com/pjmartorell/cloud-logging-mcp/compare/v1.0.4...v1.1.0) (2026-05-16)
+
+
+### Features
+
+* support GOOGLE_SERVICE_ACCOUNT_JSON for gcloud-free environments ([b3dd27c](https://github.com/pjmartorell/cloud-logging-mcp/commit/b3dd27cabf2bf435e24ca1ff7b06c8cba3e7f5b3))
+
+
+### Bug Fixes
+
+* resolve symlinks in isMain check so npx .bin wrapper is detected correctly ([d4963be](https://github.com/pjmartorell/cloud-logging-mcp/commit/d4963be270359da601e2672c1f6a3af89d18f82a))
+* warn when GOOGLE_SERVICE_ACCOUNT_JSON and GOOGLE_APPLICATION_CREDENTIALS conflict ([eed2e45](https://github.com/pjmartorell/cloud-logging-mcp/commit/eed2e45ed59e292845294fcd974df147c494ca11))
+
 ## [Unreleased]
 
 ## [1.0.5] - 2026-05-16
