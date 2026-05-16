@@ -3,6 +3,8 @@ import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js"
 import { createServer } from "./server.js";
 import { fileURLToPath } from "node:url";
 import { validateEnvironmentOrThrow } from "./util/env-validation.js";
+import { realpathSync } from "node:fs";
+import { resolve } from "node:path";
 
 /**
  * STDIO transport for backwards compatibility
@@ -20,8 +22,27 @@ async function main(): Promise<void> {
   console.error("MCP Server running in STDIO mode");
 }
 
-// Node/tsx-compatible "main module" check
-const isMain = Boolean(process.argv[1]) && fileURLToPath(import.meta.url) === process.argv[1];
+function realpathOrOriginal(path: string): string {
+  try {
+    return realpathSync(path);
+  } catch {
+    return path;
+  }
+}
+
+export function isMainModule(moduleUrl: string, argvPath: string | undefined = process.argv[1]): boolean {
+  if (argvPath === undefined || argvPath === "") {
+    return false;
+  }
+
+  const modulePath = realpathOrOriginal(fileURLToPath(moduleUrl));
+  const invokedPath = realpathOrOriginal(resolve(argvPath));
+
+  return modulePath === invokedPath;
+}
+
+// Node/tsx/npx-compatible "main module" check.
+const isMain = isMainModule(import.meta.url);
 
 if (isMain === true) {
   main().catch((error: unknown) => {
