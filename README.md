@@ -399,12 +399,20 @@ See `smithery.yaml` for the complete configuration schema.
 
 ### Environment Variables
 
-For local development or Claude Desktop usage:
+| Variable | Required | Description |
+|---|---|---|
+| `GOOGLE_CLOUD_PROJECT` | Recommended | Default GCP project ID. If omitted, must be passed on every tool call. |
+| `GOOGLE_SERVICE_ACCOUNT_JSON` | One of the three auth options | Full contents of a service account key JSON file. Takes precedence over all other auth methods. Use for fixed credentials (CI, cloud agents, containers). |
+| `GOOGLE_APPLICATION_CREDENTIALS` | One of the three auth options | Path to a service account key JSON file on disk. Standard ADC file-based auth. Ignored when `GOOGLE_SERVICE_ACCOUNT_JSON` is set. |
+| `HOME` | Required for ADC | Home directory. Needed by Node.js to locate the ADC credentials file (`~/.config/gcloud/application_default_credentials.json`). Not needed when using `GOOGLE_SERVICE_ACCOUNT_JSON`. |
+| `CLOUDSDK_CONFIG` | Optional | Path to the gcloud config directory. Defaults to `$HOME/.config/gcloud`. Override if your gcloud config is in a non-standard location. |
+| `DEBUG` | Optional | Set to `"true"` to enable debug logging. |
+| `NODE_DEBUG` | Optional | Set to `"google-auth"` for authentication debugging. |
 
-- `GOOGLE_CLOUD_PROJECT`: Your Google Cloud project ID
-- `GOOGLE_APPLICATION_CREDENTIALS`: Path to service account JSON key file (optional)
-- `DEBUG`: Set to `"true"` to enable debug logging
-- `NODE_DEBUG`: Set to `"google-auth"` for authentication debugging
+**Auth method precedence (highest to lowest):**
+1. `GOOGLE_SERVICE_ACCOUNT_JSON` — inline JSON string, no file system needed
+2. `GOOGLE_APPLICATION_CREDENTIALS` — explicit path to a key file
+3. Application Default Credentials (ADC) — `~/.config/gcloud/application_default_credentials.json` from `gcloud auth application-default login`
 
 ## Troubleshooting
 
