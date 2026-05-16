@@ -135,7 +135,12 @@ Add to your Claude Desktop configuration file:
 }
 ```
 
-> **Note:** Cursor and Claude Desktop do not inherit your shell environment, so `HOME` and `CLOUDSDK_CONFIG` must be set explicitly for [Application Default Credentials](https://cloud.google.com/docs/authentication/application-default-credentials) to work. Run `gcloud auth application-default login` once beforehand. You can also set `GOOGLE_CLOUD_PROJECT` to a default project ID if you don't want to pass it on every tool call.
+> **Note:** Cursor and Claude Desktop do not inherit your shell environment, so the following env vars must be set explicitly:
+> - `HOME` — your home directory, needed for Node.js to locate credentials files
+> - `CLOUDSDK_CONFIG` — path to your gcloud config directory (default: `~/.config/gcloud`), where Application Default Credentials are stored after running `gcloud auth application-default login`
+> - `GOOGLE_CLOUD_PROJECT` *(optional)* — sets a default project ID so you don't have to pass `projectId` on every tool call
+>
+> Run `gcloud auth application-default login` once before using the server.
 
 ### Install from Source
 
