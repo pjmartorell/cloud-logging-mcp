@@ -83,31 +83,60 @@ The automatic protobuf decoding in this MCP is particularly valuable for audit l
 
 ### Prerequisites
 
-- Node.js (v18+)
-- npm (comes with Node.js)
 - Google Cloud credentials configured
 - Access to Google Cloud Logging API
 
-### Quick Start with Smithery (Recommended)
+### Install via npm (Recommended)
 
-[Smithery.ai](https://smithery.ai) provides the easiest way to deploy and use this MCP server:
+The easiest way — no cloning required:
 
-1. **Deploy to Smithery:**
-   - Visit [smithery.ai](https://smithery.ai)
-   - Click "Deploy" and connect your GitHub repository
-   - Configure your Google Cloud credentials in the Smithery dashboard
-   - Your server will be automatically deployed with built-in authentication
+```bash
+npx -y cloud-logging-mcp
+```
 
-2. **Test Locally with Smithery:**
+#### Cursor
+
+Add to your Cursor MCP settings (`~/.cursor/mcp.json` or Settings → MCP):
+
+```json
+{
+  "mcpServers": {
+    "cloud-logging": {
+      "command": "npx",
+      "args": ["-y", "cloud-logging-mcp"]
+    }
+  }
+}
+```
+
+#### Claude Desktop
+
+Add to your Claude Desktop configuration file:
+
+- **macOS**: `~/Library/Application Support/Claude/claude_desktop_config.json`
+- **Windows**: `%APPDATA%\Claude\claude_desktop_config.json`
+
+```json
+{
+  "mcpServers": {
+    "cloud-logging": {
+      "command": "npx",
+      "args": ["-y", "cloud-logging-mcp"]
+    }
+  }
+}
+```
+
+> **Note:** Both Cursor and Claude Desktop will use your local [Application Default Credentials](https://cloud.google.com/docs/authentication/application-default-credentials). Run `gcloud auth application-default login` once if you haven't already.
+
+### Install from Source
+
+For development or customization:
+
+1. **Clone and install dependencies:**
    ```bash
-   npm run dev
-   ```
-   This will start the server and port-forward it to the Smithery Playground via ngrok.
-
-### Local Development
-
-1. **Install dependencies:**
-   ```bash
+   git clone https://github.com/pjmartorell/cloud-logging-mcp.git
+   cd cloud-logging-mcp
    npm install
    ```
 
@@ -132,26 +161,33 @@ The automatic protobuf decoding in this MCP is particularly valuable for audit l
    npm run dev:local
    ```
 
-### Using with Claude Desktop
+   Configure in Cursor or Claude Desktop pointing to the local file:
+   ```json
+   {
+     "mcpServers": {
+       "cloud-logging": {
+         "command": "npx",
+         "args": ["tsx", "/path/to/cloud-logging-mcp/src/main.ts"]
+       }
+     }
+   }
+   ```
 
-Add the following to your Claude Desktop configuration file:
+### Quick Start with Smithery
 
-- **macOS**: `~/Library/Application Support/Claude/claude_desktop_config.json`
-- **Windows**: `%APPDATA%\Claude\claude_desktop_config.json`
+[Smithery.ai](https://smithery.ai) provides a hosted deployment option:
 
-```json
-{
-  "mcpServers": {
-    "cloud-logging": {
-      "command": "npx",
-      "args": ["tsx", "/path/to/cloud-logging-mcp/src/main.ts"],
-      "env": {
-        "GOOGLE_CLOUD_PROJECT": "your-project-id"
-      }
-    }
-  }
-}
-```
+1. **Deploy to Smithery:**
+   - Visit [smithery.ai](https://smithery.ai)
+   - Click "Deploy" and connect your GitHub repository
+   - Configure your Google Cloud credentials in the Smithery dashboard
+   - Your server will be automatically deployed with built-in authentication
+
+2. **Test Locally with Smithery:**
+   ```bash
+   npm run dev
+   ```
+   This will start the server and port-forward it to the Smithery Playground via ngrok.
 
 ## Example Tool Usage
 

@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.0.2] - 2026-05-16
+
+### Added
+- `bin` entry in `package.json` — enables `npx cloud-logging-mcp` for zero-install usage
+- Shebang (`#!/usr/bin/env node`) to `src/main.ts` for direct binary execution
+
+### Fixed
+- `tsconfig.build.json` missing `rootDir` and `moduleResolution` caused several modules to be absent from `dist/` — `aggregate-logs`, `log-metrics`, `protobuf-decoder`, and `token-caching` were not compiled, making the npm package non-functional
+- README installation section restructured: `npx` install is now the primary method with explicit Cursor and Claude Desktop configs
+
 ## [1.0.1] - 2026-05-06
 
 ### Added
