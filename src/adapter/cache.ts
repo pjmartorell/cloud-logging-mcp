@@ -2,9 +2,9 @@
  * Cache implementation for Cloud Logging MCP server
  */
 
-import type { LogCache } from "../domain/cache";
-import type { RawLogEntry } from "../domain/api";
-import type { LogId } from "../domain/log-id";
+import type { LogCache } from "../domain/cache.js";
+import type { RawLogEntry } from "../domain/api.js";
+import type { LogId } from "../domain/log-id.js";
 
 /**
  * Cache configuration

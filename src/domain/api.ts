@@ -1,8 +1,8 @@
 import type { Result } from "neverthrow";
-import type { LogId } from "./log-id";
-import type { ListProjectsInput, ListProjectsOutput } from "./list-projects";
-import type { AggregationInput, AggregationOutput } from "./aggregate-logs";
-import type { LogMetricsInput, LogMetricsOutput, LogMetricsError } from "./log-metrics";
+import type { LogId } from "./log-id.js";
+import type { ListProjectsInput, ListProjectsOutput } from "./list-projects.js";
+import type { AggregationInput, AggregationOutput } from "./aggregate-logs.js";
+import type { LogMetricsInput, LogMetricsOutput, LogMetricsError } from "./log-metrics.js";
 
 /**
  * Interface for Cloud Logging adapter

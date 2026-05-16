@@ -1,9 +1,9 @@
 import { McpServer, type ReadResourceCallback } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
-import { GoogleCloudLoggingApiClient } from "./adapter/api";
-import { LogCacheImpl } from "./adapter/cache";
-import { createTools } from "./port";
-import { performHealthCheck } from "./util/health-check";
+import { GoogleCloudLoggingApiClient } from "./adapter/api.js";
+import { LogCacheImpl } from "./adapter/cache.js";
+import { createTools } from "./port/index.js";
+import { performHealthCheck } from "./util/health-check.js";
 
 // Configuration schema for Smithery
 export const configSchema = z.object({

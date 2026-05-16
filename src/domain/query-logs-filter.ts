@@ -1,5 +1,5 @@
 import { Result, ok, err } from "neverthrow";
-import { buildTimestampFilter, combineFilters } from "./time-range";
+import { buildTimestampFilter, combineFilters } from "./time-range.js";
 
 interface QueryLogsFilterInput {
   filter: string;

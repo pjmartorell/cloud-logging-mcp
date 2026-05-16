@@ -1,8 +1,8 @@
 import { z } from "zod";
 import type { CloudLoggingApi } from "../domain/api.js";
 import type { ListProjectsOutput } from "../domain/list-projects.js";
-import type { Tool } from "./types";
-import { createSuccessResponse, createErrorResponse } from "./types";
+import type { Tool } from "./types.js";
+import { createSuccessResponse, createErrorResponse } from "./types.js";
 
 const ListProjectsInputSchema = z.object({
   filter: z.string().optional().describe("Optional filter to apply to the project list"),

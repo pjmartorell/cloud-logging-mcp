@@ -1,15 +1,15 @@
 import { z } from "zod";
-import type { CloudLoggingApi } from "../domain/api";
-import type { LogCache } from "../domain/cache";
-import { createLogId } from "../domain/log-id";
+import type { CloudLoggingApi } from "../domain/api.js";
+import type { LogCache } from "../domain/cache.js";
+import { createLogId } from "../domain/log-id.js";
 import {
   buildLogFilter,
   formatLogEntry,
   formatError,
   formatNotFoundError,
-} from "../domain/get-log-detail";
-import type { Tool } from "./types";
-import { createSuccessResponse, createErrorResponse } from "./types";
+} from "../domain/get-log-detail.js";
+import type { Tool } from "./types.js";
+import { createSuccessResponse, createErrorResponse } from "./types.js";
 
 const inputSchema = z.object({
   projectId: z.string().describe("Google Cloud project ID"),

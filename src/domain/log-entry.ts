@@ -1,6 +1,6 @@
-import { redactSensitiveInfo } from "../util";
-import type { LogSeverity, RawLogEntry } from "./api";
-import type { LogId } from "./log-id";
+import { redactSensitiveInfo } from "../util/index.js";
+import type { LogSeverity, RawLogEntry } from "./api.js";
+import type { LogId } from "./log-id.js";
 
 /**
  * Log entry summary with essential information

@@ -2,7 +2,7 @@
  * Health check utilities for verifying system status
  */
 
-import type { CloudLoggingApi } from "../domain/api";
+import type { CloudLoggingApi } from "../domain/api.js";
 
 export interface HealthCheckResult {
   status: 'healthy' | 'degraded' | 'unhealthy';

@@ -1,6 +1,6 @@
-import type { RawLogEntry } from "./api";
-import { getLogIdValue } from "./log-id";
-import { summarize } from "./log-entry";
+import type { RawLogEntry } from "./api.js";
+import { getLogIdValue } from "./log-id.js";
+import { summarize } from "./log-entry.js";
 
 interface LogSummary {
   id: string;

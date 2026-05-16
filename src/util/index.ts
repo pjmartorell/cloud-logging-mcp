@@ -1,16 +1,16 @@
-export { redactSensitiveInfo } from "./redact";
+export { redactSensitiveInfo } from "./redact.js";
 export { 
   validateEnvironment, 
   validateEnvironmentOrThrow,
   type EnvironmentValidationError,
   type EnvironmentValidationResult,
   type FileSystemChecker
-} from "./env-validation";
+} from "./env-validation.js";
 export {
   performHealthCheck,
   type HealthCheckResult,
   type HealthCheckStatus
-} from "./health-check";
+} from "./health-check.js";
 
 /**
  * Extracts a value from an object using a dot-notation path

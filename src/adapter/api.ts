@@ -4,12 +4,12 @@ import { MetricServiceClient } from "@google-cloud/monitoring";
 import { GoogleAuth } from "google-auth-library";
 import grpc from "@grpc/grpc-js";
 import { ok, err, type Result } from "neverthrow";
-import type { CloudLoggingApi, CloudLoggingQuery, RawLogEntry, LogSeverity } from "../domain/api";
-import type { CloudLoggingError } from "../domain/api";
-import type { ListProjectsInput, ListProjectsOutput, Project } from "../domain/list-projects";
-import type { AggregationInput, AggregationOutput } from "../domain/aggregate-logs";
+import type { CloudLoggingApi, CloudLoggingQuery, RawLogEntry, LogSeverity } from "../domain/api.js";
+import type { CloudLoggingError } from "../domain/api.js";
+import type { ListProjectsInput, ListProjectsOutput, Project } from "../domain/list-projects.js";
+import type { AggregationInput, AggregationOutput } from "../domain/aggregate-logs.js";
 import { decodeProtoPayload } from "../util/protobuf-decoder.js";
-import type { LogMetricsInput, LogMetricsOutput, LogMetricsError } from "../domain/log-metrics";
+import type { LogMetricsInput, LogMetricsOutput, LogMetricsError } from "../domain/log-metrics.js";
 import {
   buildAggregationFilter,
   groupLogEntries,
@@ -17,13 +17,13 @@ import {
   groupLogEntriesByTime,
   formatTimeSeriesResults,
   timeIntervalToSeconds,
-} from "../domain/aggregate-logs";
+} from "../domain/aggregate-logs.js";
 import {
   validateMetricName,
   validateAlignmentPeriod,
   validateTimeRange,
-} from "../domain/log-metrics";
-import { createLogId } from "../domain/log-id";
+} from "../domain/log-metrics.js";
+import { createLogId } from "../domain/log-id.js";
 
 export class GoogleCloudLoggingApiClient implements CloudLoggingApi {
   private projectsClient: ProjectsClient;

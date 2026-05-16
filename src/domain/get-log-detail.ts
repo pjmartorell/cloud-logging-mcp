@@ -1,4 +1,4 @@
-import type { CloudLoggingError, RawLogEntry } from "./api";
+import type { CloudLoggingError, RawLogEntry } from "./api.js";
 
 export function buildLogFilter(logId: string): string {
   return `insertId="${logId}"`;

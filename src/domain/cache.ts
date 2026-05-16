@@ -1,5 +1,5 @@
-import type { RawLogEntry } from "./api";
-import type { LogId } from "./log-id";
+import type { RawLogEntry } from "./api.js";
+import type { LogId } from "./log-id.js";
 
 /**
  * Interface for log cache

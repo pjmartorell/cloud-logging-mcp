@@ -1,10 +1,10 @@
 import { z } from "zod";
-import type { CloudLoggingApi } from "../domain/api";
-import type { LogCache } from "../domain/cache";
-import { createQueryLogsOutput } from "../domain/query-logs";
-import { buildQueryLogsFilter } from "../domain/query-logs-filter";
-import type { Tool } from "./types";
-import { createSuccessResponse, createErrorResponse } from "./types";
+import type { CloudLoggingApi } from "../domain/api.js";
+import type { LogCache } from "../domain/cache.js";
+import { createQueryLogsOutput } from "../domain/query-logs.js";
+import { buildQueryLogsFilter } from "../domain/query-logs-filter.js";
+import type { Tool } from "./types.js";
+import { createSuccessResponse, createErrorResponse } from "./types.js";
 
 export const queryLogsInputSchema = z.object({
   projectId: z.string().describe("Google Cloud project ID. If unknown, call listProjects first to discover available projects."),

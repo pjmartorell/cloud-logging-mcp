@@ -3,10 +3,10 @@
  */
 
 import { z } from "zod";
-import type { CloudLoggingApi } from "../domain/api";
-import type { Tool } from "./types";
-import type { AggregationInput } from "../domain/aggregate-logs";
-import { createSuccessResponse, createErrorResponse } from "./types";
+import type { CloudLoggingApi } from "../domain/api.js";
+import type { Tool } from "./types.js";
+import type { AggregationInput } from "../domain/aggregate-logs.js";
+import { createSuccessResponse, createErrorResponse } from "./types.js";
 
 /**
  * Zod schema for aggregation input

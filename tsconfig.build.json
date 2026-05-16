@@ -7,8 +7,8 @@
     "declaration": true,
     "declarationMap": true,
     "sourceMap": true,
-    "moduleResolution": "node",
-    "ignoreDeprecations": "6.0"
+    "module": "nodenext",
+    "moduleResolution": "nodenext"
   },
   "exclude": [
     "**/*.test.ts",

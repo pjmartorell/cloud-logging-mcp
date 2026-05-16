@@ -1,5 +1,5 @@
 import { ok, err, type Result } from "neverthrow";
-import type { RawLogEntry } from "./api";
+import type { RawLogEntry } from "./api.js";
 
 /**
  * Time intervals for time series aggregation

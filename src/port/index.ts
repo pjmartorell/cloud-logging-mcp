@@ -1,10 +1,10 @@
-import type { CloudLoggingApi } from "../domain/api";
-import type { LogCache } from "../domain/cache";
-import { getLogDetailTool } from "./getLogDetail";
-import { queryLogsTool } from "./queryLogs";
-import { listProjects } from "./listProjects";
-import { createAggregateLogsTool } from "./aggregate-logs";
-import { createLogMetricsTool } from "./log-metrics";
+import type { CloudLoggingApi } from "../domain/api.js";
+import type { LogCache } from "../domain/cache.js";
+import { getLogDetailTool } from "./getLogDetail.js";
+import { queryLogsTool } from "./queryLogs.js";
+import { listProjects } from "./listProjects.js";
+import { createAggregateLogsTool } from "./aggregate-logs.js";
+import { createLogMetricsTool } from "./log-metrics.js";
 
 export const createTools = (dependencies: {
   api: CloudLoggingApi;
@@ -26,5 +26,5 @@ export const createTools = (dependencies: {
 };
 
 // Export types for external use
-export type { ToolError, ToolSuccess, ToolResponse } from "./types";
-export { createSuccessResponse, createErrorResponse } from "./types";
+export type { ToolError, ToolSuccess, ToolResponse } from "./types.js";
+export { createSuccessResponse, createErrorResponse } from "./types.js";

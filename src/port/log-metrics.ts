@@ -3,10 +3,10 @@
  */
 
 import { z } from "zod";
-import type { CloudLoggingApi } from "../domain/api";
-import type { Tool } from "./types";
-import type { LogMetricsInput } from "../domain/log-metrics";
-import { createSuccessResponse, createErrorResponse } from "./types";
+import type { CloudLoggingApi } from "../domain/api.js";
+import type { Tool } from "./types.js";
+import type { LogMetricsInput } from "../domain/log-metrics.js";
+import { createSuccessResponse, createErrorResponse } from "./types.js";
 
 /**
  * Zod schema for log metrics input
