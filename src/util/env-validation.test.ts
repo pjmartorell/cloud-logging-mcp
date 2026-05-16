@@ -113,6 +113,55 @@ describe('Environment Validation', () => {
       expect(result.valid).toBe(true);
       expect(result.warnings).toHaveLength(0);
     });
+
+    describe('GOOGLE_SERVICE_ACCOUNT_JSON auth', () => {
+      it('should pass validation with valid JSON and no HOME or ADC', () => {
+        process.env.GOOGLE_CLOUD_PROJECT = 'test-project';
+        delete process.env.HOME;
+        delete process.env.GOOGLE_APPLICATION_CREDENTIALS;
+        process.env.GOOGLE_SERVICE_ACCOUNT_JSON = JSON.stringify({ type: 'service_account', project_id: 'test' });
+
+        const result = validateEnvironment();
+
+        expect(result.valid).toBe(true);
+        expect(result.errors).toHaveLength(0);
+        expect(result.warnings).toHaveLength(0);
+      });
+
+      it('should fail when GOOGLE_SERVICE_ACCOUNT_JSON is invalid JSON', () => {
+        process.env.GOOGLE_CLOUD_PROJECT = 'test-project';
+        process.env.GOOGLE_SERVICE_ACCOUNT_JSON = 'not-valid-json';
+
+        const result = validateEnvironment();
+
+        expect(result.valid).toBe(false);
+        expect(result.errors).toHaveLength(1);
+        expect(result.errors[0]?.variable).toBe('GOOGLE_SERVICE_ACCOUNT_JSON');
+      });
+
+      it('should still require GOOGLE_CLOUD_PROJECT when using GOOGLE_SERVICE_ACCOUNT_JSON', () => {
+        delete process.env.GOOGLE_CLOUD_PROJECT;
+        process.env.GOOGLE_SERVICE_ACCOUNT_JSON = JSON.stringify({ type: 'service_account' });
+
+        const result = validateEnvironment();
+
+        expect(result.valid).toBe(false);
+        expect(result.errors[0]?.variable).toBe('GOOGLE_CLOUD_PROJECT');
+      });
+
+      it('should skip ADC warning when GOOGLE_SERVICE_ACCOUNT_JSON is set', () => {
+        process.env.GOOGLE_CLOUD_PROJECT = 'test-project';
+        delete process.env.HOME;
+        process.env.GOOGLE_SERVICE_ACCOUNT_JSON = JSON.stringify({ type: 'service_account' });
+
+        const mockFsChecker = { fileExists: vi.fn().mockReturnValue(false) };
+        const result = validateEnvironment(mockFsChecker);
+
+        expect(result.valid).toBe(true);
+        expect(result.warnings).toHaveLength(0);
+        expect(mockFsChecker.fileExists).not.toHaveBeenCalled();
+      });
+    });
   });
 
   describe('validateEnvironmentOrThrow', () => {

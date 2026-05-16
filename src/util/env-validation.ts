@@ -47,6 +47,27 @@ export function validateEnvironment(fsChecker: FileSystemChecker = defaultFsChec
     });
   }
 
+  // GOOGLE_SERVICE_ACCOUNT_JSON bypasses all ADC/gcloud checks.
+  // It is the recommended auth method for environments where gcloud is not
+  // installed (e.g. Cursor Cloud Agents). When it is set, HOME and ADC are
+  // not required.
+  const serviceAccountJson = process.env.GOOGLE_SERVICE_ACCOUNT_JSON;
+  const hasServiceAccountJson = serviceAccountJson !== undefined && serviceAccountJson !== '';
+
+  if (hasServiceAccountJson) {
+    // Validate that the value is parseable JSON
+    try {
+      JSON.parse(serviceAccountJson);
+    } catch {
+      errors.push({
+        variable: 'GOOGLE_SERVICE_ACCOUNT_JSON',
+        reason: 'Value is not valid JSON',
+        suggestion: 'Set GOOGLE_SERVICE_ACCOUNT_JSON to the full contents of your service account key file (e.g. the output of: cat key.json)',
+      });
+    }
+    return { valid: errors.length === 0, errors, warnings };
+  }
+
   const home = process.env.HOME;
   if (home === undefined || home === '') {
     errors.push({
@@ -75,7 +96,7 @@ export function validateEnvironment(fsChecker: FileSystemChecker = defaultFsChec
       warnings.push({
         variable: 'GOOGLE_CLOUD_CREDENTIALS',
         reason: 'No authentication credentials found',
-        suggestion: 'Run "gcloud auth application-default login" or set GOOGLE_APPLICATION_CREDENTIALS to a service account key file',
+        suggestion: 'Run "gcloud auth application-default login", set GOOGLE_APPLICATION_CREDENTIALS to a service account key file, or set GOOGLE_SERVICE_ACCOUNT_JSON to the service account JSON string',
       });
     }
   }

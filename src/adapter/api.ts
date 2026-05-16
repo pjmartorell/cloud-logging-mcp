@@ -34,25 +34,35 @@ export class GoogleCloudLoggingApiClient implements CloudLoggingApi {
   private tokenExpiryTime?: number;
 
   constructor() {
-    // Initialize with explicit configuration to ensure credentials are picked up
     this.projectId = process.env.GOOGLE_CLOUD_PROJECT ?? "";
-    
-    // Create GoogleAuth instance for obtaining access tokens
-    // This is necessary for creating manual gRPC credentials that work with v10
+
+    // Support passing service account credentials as a JSON string via env var.
+    // This is the only auth option in environments where gcloud is not installed
+    // (e.g. Cursor Cloud Agents). Falls back to ADC for local development.
+    const serviceAccountJson = process.env.GOOGLE_SERVICE_ACCOUNT_JSON;
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+    const credentials: Record<string, unknown> | undefined =
+      serviceAccountJson !== undefined && serviceAccountJson !== ""
+        ? JSON.parse(serviceAccountJson)
+        : undefined;
+
     this.auth = new GoogleAuth({
+      credentials,
       scopes: [
-        'https://www.googleapis.com/auth/cloud-platform',
-        'https://www.googleapis.com/auth/logging.read',
-        'https://www.googleapis.com/auth/monitoring.read',
+        "https://www.googleapis.com/auth/cloud-platform",
+        "https://www.googleapis.com/auth/logging.read",
+        "https://www.googleapis.com/auth/monitoring.read",
       ],
     });
-    
+
     this.projectsClient = new ProjectsClient({
       projectId: this.projectId,
+      credentials,
     });
 
     this.metricsClient = new MetricServiceClient({
       projectId: this.projectId,
+      credentials,
     });
   }
   

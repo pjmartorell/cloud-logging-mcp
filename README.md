@@ -142,6 +142,27 @@ Add to your Claude Desktop configuration file:
 >
 > Run `gcloud auth application-default login` once before using the server.
 
+#### Cursor Cloud Agents (no gcloud)
+
+In environments where `gcloud` cannot be installed (Cursor Cloud Agents, CI pipelines, containers), authenticate with a service account JSON string instead:
+
+```json
+{
+  "mcpServers": {
+    "cloud-logging": {
+      "command": "npx",
+      "args": ["-y", "cloud-logging-mcp"],
+      "env": {
+        "GOOGLE_CLOUD_PROJECT": "your-project-id",
+        "GOOGLE_SERVICE_ACCOUNT_JSON": "{\"type\":\"service_account\",\"project_id\":\"...\", ...}"
+      }
+    }
+  }
+}
+```
+
+> **Getting the JSON value:** Download a service account key from the GCP Console (IAM → Service Accounts → Keys → Add Key → JSON), then paste the entire file contents as the value of `GOOGLE_SERVICE_ACCOUNT_JSON`. The service account needs the `Logging Viewer` and `Monitoring Viewer` roles.
+
 ### Install from Source
 
 For development or customization:
